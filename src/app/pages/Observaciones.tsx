@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { Plus, Save, Trash2 } from 'lucide-react';
+import { useProject } from '../context/ProjectContext';
+import { api } from '../services/api';
 
 interface Observation {
   participante: string;
@@ -16,20 +18,32 @@ interface Observation {
 }
 
 export function Observaciones() {
-  const [observations, setObservations] = useState<Observation[]>([
-    {
-      participante: '',
-      perfil: '',
-      tarea: '',
-      exito: '',
-      tiempo: '',
-      errores: '',
-      comentarios: '',
-      problema: '',
-      severidad: '',
-      mejora: '',
-    },
-  ]);
+  const { activeProject } = useProject();
+  const [observations, setObservations] = useState<Observation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeProject) {
+      loadData(activeProject.id);
+    } else {
+      setObservations([]);
+    }
+  }, [activeProject]);
+
+  const loadData = async (projectId: number) => {
+    setIsLoading(true);
+    try {
+      const data = await api.getObservaciones(projectId);
+      if (data && data.length > 0) {
+        setObservations(data);
+      } else {
+        setObservations([]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsLoading(false);
+  };
 
   const handleChange = (index: number, field: keyof Observation, value: string) => {
     const newObservations = [...observations];
@@ -62,8 +76,19 @@ export function Observaciones() {
     }
   };
 
-  const handleSave = () => {
-    alert('Observaciones guardadas correctamente');
+  const handleSave = async () => {
+    if (!activeProject) {
+      alert("Por favor selecciona o crea un proyecto primero.");
+      return;
+    }
+    
+    try {
+      await api.saveObservaciones(activeProject.id, observations);
+      alert('Observaciones guardadas correctamente');
+    } catch (e) {
+      console.error(e);
+      alert('Error guardando las observaciones');
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -79,8 +104,17 @@ export function Observaciones() {
     }
   };
 
+  if (!activeProject) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        <h2 className="text-xl">No hay proyecto seleccionado</h2>
+        <p>Por favor selecciona o crea un proyecto en el menú lateral para continuar.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
+    <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>

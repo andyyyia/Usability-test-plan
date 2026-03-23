@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { Plus, Save, Trash2 } from 'lucide-react';
+import { useProject } from '../context/ProjectContext';
+import { api } from '../services/api';
 
 interface Finding {
   problema: string;
@@ -13,17 +15,32 @@ interface Finding {
 }
 
 export function Hallazgos() {
-  const [findings, setFindings] = useState<Finding[]>([
-    {
-      problema: '',
-      evidencia: '',
-      frecuencia: '',
-      severidad: '',
-      recomendacion: '',
-      prioridad: '',
-      estado: '',
-    },
-  ]);
+  const { activeProject } = useProject();
+  const [findings, setFindings] = useState<Finding[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (activeProject) {
+      loadData(activeProject.id);
+    } else {
+      setFindings([]);
+    }
+  }, [activeProject]);
+
+  const loadData = async (projectId: number) => {
+    setIsLoading(true);
+    try {
+      const data = await api.getHallazgos(projectId);
+      if (data && data.length > 0) {
+        setFindings(data);
+      } else {
+        setFindings([]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsLoading(false);
+  };
 
   const handleChange = (index: number, field: keyof Finding, value: string) => {
     const newFindings = [...findings];
@@ -46,8 +63,19 @@ export function Hallazgos() {
     ]);
   };
 
-  const handleSave = () => {
-    alert('Hallazgos guardados correctamente');
+  const handleSave = async () => {
+    if (!activeProject) {
+      alert("Por favor selecciona o crea un proyecto primero.");
+      return;
+    }
+    
+    try {
+      await api.saveHallazgos(activeProject.id, findings);
+      alert('Hallazgos guardados correctamente');
+    } catch (e) {
+      console.error(e);
+      alert('Error guardando los hallazgos');
+    }
   };
 
   const getSeverityColor = (severity: string) => {
@@ -96,8 +124,17 @@ export function Hallazgos() {
     }
   };
 
+  if (!activeProject) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        <h2 className="text-xl">No hay proyecto seleccionado</h2>
+        <p>Por favor selecciona o crea un proyecto en el menú lateral para continuar.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
+    <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>

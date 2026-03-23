@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { Save, Trash2, Plus } from 'lucide-react';
+import { useProject } from '../context/ProjectContext';
+import { api } from '../services/api';
 
 interface Task {
   id: string;
@@ -10,22 +12,39 @@ interface Task {
 }
 
 export function TareasYGuion() {
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: 'T1',
-      texto: 'Imagina que quieres revisar tu nota del primer parcial. Muéstrame cómo lo harías.',
-      pregunta: '¿Qué esperabas encontrar en esta pantalla?',
-      exito: 'Encuentra la nota sin ayuda',
-    },
-    { id: 'T2', texto: '', pregunta: '', exito: '' },
-    { id: 'T3', texto: '', pregunta: '', exito: '' },
-    { id: 'T4', texto: '', pregunta: '', exito: '' },
-  ]);
+  const { activeProject } = useProject();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Preguntas de cierre
-  const [facil, setFacil] = useState('');
-  const [confuso, setConfuso] = useState('');
-  const [cambiaria, setCambiaria] = useState('');
+  // No need for separate state for closing questions as they are just a guide
+
+  useEffect(() => {
+    if (activeProject) {
+      loadData(activeProject.id);
+    } else {
+      setTasks([]);
+    }
+  }, [activeProject]);
+
+  const loadData = async (projectId: number) => {
+    setIsLoading(true);
+    try {
+      const backendTasks = await api.getTareasGuion(projectId);
+      if (backendTasks && backendTasks.length > 0) {
+        setTasks(backendTasks.map((t: any) => ({
+          id: t.identificador,
+          texto: t.texto || '',
+          pregunta: t.pregunta || '',
+          exito: t.exito_esperado || ''
+        })));
+      } else {
+        setTasks([]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsLoading(false);
+  };
 
   const handleTaskChange = (index: number, field: keyof Task, value: string) => {
     const newTasks = [...tasks];
@@ -33,8 +52,25 @@ export function TareasYGuion() {
     setTasks(newTasks);
   };
 
-  const handleSave = () => {
-    alert('Guion guardado correctamente');
+  const handleSave = async () => {
+    if (!activeProject) {
+      alert("Por favor selecciona o crea un proyecto primero.");
+      return;
+    }
+    
+    try {
+      const formattedTasks = tasks.map(t => ({
+        identificador: t.id,
+        texto: t.texto,
+        pregunta: t.pregunta,
+        exito_esperado: t.exito
+      }));
+      await api.saveTareasGuion(activeProject.id, formattedTasks);
+      alert('Guion guardado correctamente');
+    } catch (e) {
+      console.error(e);
+      alert('Error guardando el guion');
+    }
   };
 
   const handleAddTask = () => {
@@ -60,8 +96,17 @@ export function TareasYGuion() {
     }
   };
 
+  if (!activeProject) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        <h2 className="text-xl">No hay proyecto seleccionado</h2>
+        <p>Por favor selecciona o crea un proyecto en el menú lateral para continuar.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
+    <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <header className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Tareas y Guion de moderación</h1>
@@ -187,50 +232,29 @@ export function TareasYGuion() {
         </Card>
 
         {/* Card 3: Cierre */}
-        <Card title="Cierre">
+        <Card title="Cierre de la sesión">
           <div className="space-y-4">
             <p className="text-sm text-gray-700 mb-4">
-              Preguntas finales para cerrar la sesión:
+              Asegúrate de realizar estas preguntas finales para cerrar la participación:
             </p>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ¿Qué fue lo más fácil?
-              </label>
-              <input
-                type="text"
-                value={facil}
-                onChange={(e) => setFacil(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Notas sobre aspectos positivos..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ¿Qué fue lo más confuso?
-              </label>
-              <input
-                type="text"
-                value={confuso}
-                onChange={(e) => setConfuso(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Problemas o fricciones identificadas..."
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ¿Qué cambiarías primero?
-              </label>
-              <input
-                type="text"
-                value={cambiaria}
-                onChange={(e) => setCambiaria(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Sugerencias del usuario..."
-              />
-            </div>
+            <ul className="space-y-3 list-disc list-inside">
+              <li className="text-sm text-gray-800">
+                <span className="font-semibold text-[#1E3A5F]">¿Qué fue lo más fácil del sistema?</span><br />
+                <span className="pl-5 text-gray-600">Para identificar los aciertos clave del diseño.</span>
+              </li>
+              <li className="text-sm text-gray-800">
+                <span className="font-semibold text-[#1E3A5F]">¿Qué fue lo más confuso o frustrante?</span><br />
+                <span className="pl-5 text-gray-600">Para levantar los puntos de fricción principales.</span>
+              </li>
+              <li className="text-sm text-gray-800">
+                <span className="font-semibold text-[#1E3A5F]">Si pudieras cambiar una sola cosa del diseño, ¿cuál sería?</span><br />
+                <span className="pl-5 text-gray-600">Ayuda a priorizar la próxima mejora desde la perspectiva del participante.</span>
+              </li>
+            </ul>
+            <p className="text-sm text-gray-500 mt-4 italic border-t pt-4">
+              Nota: Escribe las respuestas del participante en la sección de "Observaciones" o anótalas como "Hallazgos" si es un problema recurrente.
+            </p>
           </div>
         </Card>
       </div>
