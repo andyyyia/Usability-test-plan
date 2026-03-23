@@ -10,12 +10,14 @@ export function Sidebar() {
   const [newProjectDesc, setNewProjectDesc] = useState('');
 
   const handleCreate = async () => {
-    if (newProjectName.trim()) {
-      await createProyecto(newProjectName, newProjectDesc);
-      setIsCreating(false);
-      setNewProjectName('');
-      setNewProjectDesc('');
+    if (!newProjectName.trim() || !newProjectDesc.trim()) {
+      alert('Todos los campos del proyecto son obligatorios. No se permiten datos en blanco.');
+      return;
     }
+    await createProyecto(newProjectName, newProjectDesc);
+    setIsCreating(false);
+    setNewProjectName('');
+    setNewProjectDesc('');
   };
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,15 +28,16 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white shadow-lg h-screen sticky top-0 flex flex-col">
+    <aside aria-label="Menú principal" className="w-64 bg-white shadow-lg h-screen sticky top-0 flex flex-col">
       <div className="p-6 bg-[#1E3A5F]">
         <h2 className="text-white font-bold text-lg">UX Testing</h2>
         <p className="text-blue-200 text-sm mt-1">Sistema de Usabilidad</p>
         
         <div className="mt-6">
-          <label className="text-xs text-blue-200 uppercase font-semibold mb-2 block">Proyecto Actual</label>
+          <label htmlFor="project-select" className="text-xs text-blue-200 uppercase font-semibold mb-2 block">Proyecto Actual</label>
           <div className="relative">
             <select
+              id="project-select"
               className="w-full bg-[#152d47] text-white text-sm rounded-md p-2 appearance-none border border-[#2a4d7a] focus:outline-none focus:border-blue-400"
               value={activeProject?.id || ''}
               onChange={(e) => {
@@ -54,7 +57,7 @@ export function Sidebar() {
           
           <button
             onClick={() => setIsCreating(!isCreating)}
-            className="mt-3 w-full flex items-center justify-center gap-2 text-xs text-blue-200 hover:text-white transition-colors py-1 border border-transparent hover:border-blue-400 rounded-md bg-[#152d47] opacity-80 hover:opacity-100"
+            className="mt-3 w-full flex items-center justify-center gap-2 text-xs text-white hover:text-white transition-colors py-1 border border-transparent hover:border-blue-400 rounded-md bg-[#152d47] hover:bg-[#1a385f]"
           >
             <FolderPlus className="w-3 h-3" />
             {isCreating ? 'Cancelar' : 'Nuevo Proyecto'}
@@ -113,7 +116,7 @@ export function Sidebar() {
       </nav>
       
       <div className="p-4 border-t border-gray-200">
-        <p className="text-xs text-gray-500 text-center">
+        <p className="text-xs text-gray-700 text-center">
           © 2026 Usability Testing Dashboard
         </p>
       </div>

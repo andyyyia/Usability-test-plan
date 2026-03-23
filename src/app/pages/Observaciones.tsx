@@ -82,6 +82,11 @@ export function Observaciones() {
       return;
     }
     
+    if (observations.some(o => !o.participante.trim() || !o.perfil.trim() || !o.tarea.trim() || !o.exito.trim() || !String(o.tiempo).trim() || !String(o.errores).trim() || !o.comentarios.trim() || !o.problema.trim() || !o.severidad.trim() || !o.mejora.trim())) {
+      alert("Todos los campos de las observaciones son obligatorios. No se permiten datos en blanco.");
+      return;
+    }
+
     try {
       await api.saveObservaciones(activeProject.id, observations);
       alert('Observaciones guardadas correctamente');
@@ -118,7 +123,7 @@ export function Observaciones() {
       <div className="max-w-[1100px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Registro de observación</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Registro de observación - {activeProject.nombre}</h1>
             <p className="text-gray-600 mt-1">Documenta las observaciones durante las pruebas</p>
           </div>
           <button

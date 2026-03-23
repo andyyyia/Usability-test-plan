@@ -58,6 +58,11 @@ export function TareasYGuion() {
       return;
     }
     
+    if (tasks.some(t => !t.texto.trim() || !t.pregunta.trim() || !t.exito.trim())) {
+      alert("Todos los campos de las tareas son obligatorios. No se permiten datos en blanco.");
+      return;
+    }
+
     try {
       const formattedTasks = tasks.map(t => ({
         identificador: t.id,
@@ -109,7 +114,7 @@ export function TareasYGuion() {
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <header className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tareas y Guion de moderación</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Tareas y Guion de moderación - {activeProject.nombre}</h1>
           <p className="text-gray-600 mt-1">Guion completo para conducir la sesión de usabilidad</p>
         </div>
         <button

@@ -135,6 +135,14 @@ export function PlanDePrueba() {
       return;
     }
 
+    const generalesInvalidos = !producto.trim() || !pantalla.trim() || !objetivo.trim() || !perfil.trim() || !metodo.trim() || !fecha.trim() || !lugar.trim() || !duracion.trim() || !moderador.trim() || !observador.trim() || !herramienta.trim() || !enlace.trim() || !notas.trim();
+    const tareasInvalidas = tasks.some(t => !t.scenario.trim() || !t.expectedResult.trim() || !t.mainMetric.trim() || !t.successCriteria.trim());
+    
+    if (generalesInvalidos || tareasInvalidas) {
+      alert("Todos los campos del plan y de las tareas son obligatorios. No se permiten datos en blanco.");
+      return;
+    }
+
     try {
       await api.savePlan({
         proyecto_id: activeProject.id,
@@ -201,7 +209,7 @@ export function PlanDePrueba() {
       <div className="max-w-[1100px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Plan de prueba de usabilidad</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Plan de prueba de usabilidad - {activeProject.nombre}</h1>
             <p className="text-gray-600 mt-1">Define el contexto y parámetros de la prueba</p>
           </div>
           <div className="flex gap-3">

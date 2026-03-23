@@ -20,6 +20,9 @@ app.get('/api/proyectos', async (req, res) => {
 
 app.post('/api/proyectos', async (req, res) => {
   const { nombre, descripcion } = req.body;
+  if (!nombre || nombre.trim() === '') {
+    return res.status(400).json({ error: 'El campo nombre es obligatorio' });
+  }
   try {
     const [result] = await pool.query('INSERT INTO proyectos (nombre, descripcion) VALUES (?, ?)', [nombre, descripcion]);
     res.status(201).json({ id: result.insertId, nombre, descripcion });
@@ -52,6 +55,9 @@ app.get('/api/planes/:proyectoId', async (req, res) => {
 
 app.post('/api/planes', async (req, res) => {
   const data = req.body;
+  if (!data.proyecto_id) {
+    return res.status(400).json({ error: 'El ID del proyecto es obligatorio' });
+  }
   try {
     // Check if exists
     const [existing] = await pool.query('SELECT id FROM planes_prueba WHERE proyecto_id = ?', [data.proyecto_id]);
@@ -100,7 +106,9 @@ app.post('/api/tareas-plan/:proyectoId', async (req, res) => {
   const { proyectoId } = req.params;
   const tareas = req.body;
   
+  if (!proyectoId) return res.status(400).json({ error: 'El ID del proyecto es obligatorio' });
   if (!Array.isArray(tareas)) return res.status(400).json({ error: 'Formato inválido' });
+  if (tareas.some(t => !t.identificador)) return res.status(400).json({ error: 'El identificador de la tarea es obligatorio' });
 
   const connection = await pool.getConnection();
   try {
@@ -139,7 +147,9 @@ app.post('/api/tareas-guion/:proyectoId', async (req, res) => {
   const { proyectoId } = req.params;
   const tareas = req.body;
 
+  if (!proyectoId) return res.status(400).json({ error: 'El ID del proyecto es obligatorio' });
   if (!Array.isArray(tareas)) return res.status(400).json({ error: 'Formato inválido' });
+  if (tareas.some(t => !t.identificador)) return res.status(400).json({ error: 'El identificador de la tarea es obligatorio' });
 
   const connection = await pool.getConnection();
   try {
@@ -178,6 +188,8 @@ app.post('/api/observaciones/:proyectoId', async (req, res) => {
   const { proyectoId } = req.params;
   const observaciones = req.body;
   
+  if (!proyectoId) return res.status(400).json({ error: 'El ID del proyecto es obligatorio' });
+
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
@@ -213,6 +225,11 @@ app.post('/api/hallazgos/:proyectoId', async (req, res) => {
   const { proyectoId } = req.params;
   const hallazgos = req.body;
   
+  if (!proyectoId) return res.status(400).json({ error: 'El ID del proyecto es obligatorio' });
+  if (hallazgos.some((h: any) => !h.problema || h.problema.trim() === '')) {
+    return res.status(400).json({ error: 'El campo problema es obligatorio para cada hallazgo' });
+  }
+
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
