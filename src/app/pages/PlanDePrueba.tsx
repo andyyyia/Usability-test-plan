@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { FormRow } from '../components/FormRow';
 import { Save, Edit2, X, Plus, Trash2 } from 'lucide-react';
+import { useProject } from '../context/ProjectContext';
+import { api } from '../services/api';
 
 interface Task {
   id: string;
@@ -12,8 +14,10 @@ interface Task {
 }
 
 export function PlanDePrueba() {
+  const { activeProject } = useProject();
   const [isEditing, setIsEditing] = useState(true);
-  
+  const [isLoading, setIsLoading] = useState(false);
+
   // Contexto general
   const [producto, setProducto] = useState('');
   const [pantalla, setPantalla] = useState('');
@@ -64,24 +68,136 @@ export function PlanDePrueba() {
     }
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
-    // Aquí irían las validaciones y guardado
-    alert('Plan guardado correctamente');
+  useEffect(() => {
+    if (activeProject) {
+      loadData(activeProject.id);
+    } else {
+      // Clear data if no project
+      setProducto(''); setPantalla(''); setObjetivo(''); setPerfil('');
+      setMetodo(''); setFecha(''); setLugar(''); setDuracion('');
+      setModerador(''); setObservador(''); setHerramienta(''); setEnlace(''); setNotas('');
+      setTasks([]);
+    }
+  }, [activeProject]);
+
+  const loadData = async (projectId: number) => {
+    setIsLoading(true);
+    try {
+      const pData = await api.getPlan(projectId);
+      if (pData) {
+        setProducto(pData.producto || '');
+        setPantalla(pData.pantalla || '');
+        setObjetivo(pData.objetivo || '');
+        setPerfil(pData.perfil || '');
+        setMetodo(pData.metodo || '');
+        setFecha(pData.fecha ? pData.fecha.split('T')[0] : '');
+        setLugar(pData.lugar || '');
+        setDuracion(pData.duracion || '');
+        setModerador(pData.moderador || '');
+        setObservador(pData.observador || '');
+        setHerramienta(pData.herramienta || '');
+        setEnlace(pData.enlace || '');
+        setNotas(pData.notas || '');
+      } else {
+        setProducto(''); setPantalla(''); setObjetivo(''); setPerfil('');
+        setMetodo(''); setFecha(''); setLugar(''); setDuracion('');
+        setModerador(''); setObservador(''); setHerramienta(''); setEnlace(''); setNotas('');
+      }
+
+      const tData = await api.getTareasPlan(projectId);
+      if (tData && tData.length > 0) {
+        setTasks(tData.map((t: any) => ({
+          id: t.identificador,
+          scenario: t.escenario || '',
+          expectedResult: t.resultado_esperado || '',
+          mainMetric: t.metrica_principal || '',
+          successCriteria: t.criterio_exito || ''
+        })));
+      } else {
+        // Reset tasks or use initial defaults if no tasks found
+        setTasks([
+          { id: 'T1', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
+          { id: 'T2', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
+          { id: 'T3', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
+          { id: 'T4', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
+        ]);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsLoading(false);
+    setIsEditing(false); // start in view mode when loaded
+  };
+
+  const handleSave = async () => {
+    if (!activeProject) {
+      alert("Por favor selecciona o crea un proyecto primero.");
+      return;
+    }
+
+    try {
+      await api.savePlan({
+        proyecto_id: activeProject.id,
+        producto,
+        pantalla,
+        objetivo,
+        perfil,
+        metodo,
+        fecha,
+        lugar,
+        duracion,
+        moderador,
+        observador,
+        herramienta,
+        enlace,
+        notas,
+      });
+
+      const formattedTasks = tasks.map(t => ({
+        identificador: t.id,
+        escenario: t.scenario,
+        resultado_esperado: t.expectedResult,
+        metrica_principal: t.mainMetric,
+        criterio_exito: t.successCriteria
+      }));
+      await api.saveTareasPlan(activeProject.id, formattedTasks);
+
+      setIsEditing(false);
+      alert('Plan guardado correctamente');
+    } catch (e) {
+      console.error(e);
+      alert('Error guardando el plan');
+    }
   };
 
   const handleEdit = () => {
+    if (!activeProject) {
+      alert("Por favor selecciona o crea un proyecto primero.");
+      return;
+    }
     setIsEditing(true);
   };
 
   const handleCancel = () => {
     if (confirm('¿Descartar cambios?')) {
       setIsEditing(false);
+      if (activeProject) {
+        loadData(activeProject.id); // reload original state
+      }
     }
   };
 
+  if (!activeProject) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        <h2 className="text-xl">No hay proyecto seleccionado</h2>
+        <p>Por favor selecciona o crea un proyecto en el menú lateral para continuar.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-8">
+    <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>
@@ -130,14 +246,14 @@ export function PlanDePrueba() {
               <div className="mb-3">
                 <p className="text-xs text-gray-500 ml-52">Especifica el nombre completo del producto a evaluar</p>
               </div>
-              
+
               <FormRow
                 label="Pantalla / módulo"
                 value={pantalla}
                 onChange={setPantalla}
                 placeholder="Área específica a evaluar"
               />
-              
+
               <FormRow
                 label="Objetivo del test"
                 value={objetivo}
@@ -147,14 +263,14 @@ export function PlanDePrueba() {
               <div className="mb-3">
                 <p className="text-xs text-gray-500 ml-52">Define claramente qué aspecto de usabilidad se evaluará</p>
               </div>
-              
+
               <FormRow
                 label="Perfil de usuarios"
                 value={perfil}
                 onChange={setPerfil}
                 placeholder="Características de los participantes"
               />
-              
+
               <div className="flex items-center gap-4 mb-3">
                 <label className="w-48 text-sm font-medium text-gray-700 flex-shrink-0">
                   Método
@@ -171,21 +287,21 @@ export function PlanDePrueba() {
                   <option value="guerrilla">Guerrilla</option>
                 </select>
               </div>
-              
+
               <FormRow
                 label="Fecha"
                 value={fecha}
                 onChange={setFecha}
                 type="date"
               />
-              
+
               <FormRow
                 label="Lugar / canal"
                 value={lugar}
                 onChange={setLugar}
                 placeholder="Presencial, remoto, laboratorio..."
               />
-              
+
               <FormRow
                 label="Duración"
                 value={duracion}
