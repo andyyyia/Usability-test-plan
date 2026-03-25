@@ -24,6 +24,7 @@ export function Observaciones() {
   const [observations, setObservations] = useState<Observation[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
   const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
     open: false,
     title: '',
@@ -48,18 +49,20 @@ export function Observaciones() {
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);
+    let hasData = false;
     try {
       const data = await api.getObservaciones(projectId);
       if (data && data.length > 0) {
+        hasData = true;
         setObservations(data);
       } else {
-        setObservations([]);
+        setObservations([{ participante: '', perfil: '', tarea: '', exito: '', tiempo: '', errores: '', comentarios: '', problema: '', severidad: '', mejora: '' }]);
       }
     } catch (e) {
       console.error(e);
     }
     setIsLoading(false);
-    setIsEditing(false);
+    setIsEditing(!hasData);
   };
 
   const handleChange = (index: number, field: keyof Observation, value: string) => {
@@ -97,13 +100,37 @@ export function Observaciones() {
       return;
     }
     
-    if (observations.some(o => !o.participante.trim() || !o.perfil.trim() || !o.tarea.trim() || !o.exito.trim() || !String(o.tiempo).trim() || !String(o.errores).trim() || !o.comentarios.trim() || !o.problema.trim() || !o.severidad.trim() || !o.mejora.trim())) {
-      showModal('Validación', 'Todos los campos de las observaciones son obligatorios. No se permiten datos en blanco.', 'error');
+    const newErrors: { index: number; field: string }[] = [];
+    observations.forEach((o, index) => {
+      if (!o.participante.trim()) newErrors.push({ index, field: 'participante' });
+      if (!o.perfil.trim()) newErrors.push({ index, field: 'perfil' });
+      if (!o.tarea.trim()) newErrors.push({ index, field: 'tarea' });
+      if (!o.exito.trim()) newErrors.push({ index, field: 'exito' });
+      if (!String(o.tiempo).trim()) newErrors.push({ index, field: 'tiempo' });
+      if (!String(o.errores).trim()) newErrors.push({ index, field: 'errores' });
+      if (!o.comentarios.trim()) newErrors.push({ index, field: 'comentarios' });
+      if (!o.problema.trim()) newErrors.push({ index, field: 'problema' });
+      if (!o.severidad.trim()) newErrors.push({ index, field: 'severidad' });
+      if (!o.mejora.trim()) newErrors.push({ index, field: 'mejora' });
+    });
+    setErrors(newErrors);
+
+    if (observations.length === 0 || newErrors.length > 0) {
+      showModal('Validación', observations.length === 0 ? 'Debe registrar al menos una observación.' : 'Faltan completar campos obligatorios en las observaciones.', 'error');
+      
+      setTimeout(() => {
+        if (newErrors.length > 0) {
+          const firstErrorId = `obs-${newErrors[0].index}-${newErrors[0].field}`;
+          const el = document.getElementById(firstErrorId);
+          if (el) el.focus();
+        }
+      }, 100);
       return;
     }
 
     try {
       await api.saveObservaciones(activeProject.id, observations);
+      setErrors([]);
       setIsEditing(false);
       showModal('Éxito', 'Observaciones guardadas correctamente', 'success');
     } catch (e) {
@@ -229,43 +256,47 @@ export function Observaciones() {
                   <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-participante`}
                         type="text"
                         value={obs.participante}
                         onChange={(e) => handleChange(index, 'participante', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'participante') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Usuario 1"
                         aria-label={`Participante fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-perfil`}
                         type="text"
                         value={obs.perfil}
                         onChange={(e) => handleChange(index, 'perfil', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'perfil') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Avanzado"
                         aria-label={`Perfil fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-tarea`}
                         type="text"
                         value={obs.tarea}
                         onChange={(e) => handleChange(index, 'tarea', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'tarea') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="T1"
                         aria-label={`Tarea fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <select
+                        id={`obs-${index}-exito`}
                         value={obs.exito}
                         onChange={(e) => handleChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'exito') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         aria-label={`Éxito fila ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -276,56 +307,59 @@ export function Observaciones() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-tiempo`}
                         type="number"
                         value={obs.tiempo}
                         onChange={(e) => handleChange(index, 'tiempo', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="120"
                         aria-label={`Tiempo fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-errores`}
                         type="number"
                         value={obs.errores}
                         onChange={(e) => handleChange(index, 'errores', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="2"
                         aria-label={`Errores fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-comentarios`}
                         type="text"
                         value={obs.comentarios}
                         onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Comentarios..."
                         aria-label={`Comentarios fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-problema`}
                         type="text"
                         value={obs.problema}
                         onChange={(e) => handleChange(index, 'problema', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Problema..."
                         aria-label={`Problema fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <select
+                        id={`obs-${index}-severidad`}
                         value={obs.severidad}
                         onChange={(e) => handleChange(index, 'severidad', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(
-                          obs.severidad
-                        )}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(obs.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         aria-label={`Severidad fila ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -336,11 +370,12 @@ export function Observaciones() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`obs-${index}-mejora`}
                         type="text"
                         value={obs.mejora}
                         onChange={(e) => handleChange(index, 'mejora', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Mejora..."
                         aria-label={`Mejora fila ${index + 1}`}
                       />
