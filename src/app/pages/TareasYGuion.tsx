@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { Save, Trash2, Plus } from 'lucide-react';
+import { Save, Trash2, Plus, Edit2, X } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
+import { MessageModal } from '../components/MessageModal';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface Task {
   id: string;
@@ -14,7 +16,21 @@ interface Task {
 export function TareasYGuion() {
   const { activeProject } = useProject();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info',
+  });
+
+  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ open: true, title, message, variant });
+  };
+
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
+  const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
 
   // No need for separate state for closing questions as they are just a guide
 
@@ -44,9 +60,11 @@ export function TareasYGuion() {
       console.error(e);
     }
     setIsLoading(false);
+    setIsEditing(false);
   };
 
   const handleTaskChange = (index: number, field: keyof Task, value: string) => {
+    if (!isEditing) return;
     const newTasks = [...tasks];
     newTasks[index] = { ...newTasks[index], [field]: value };
     setTasks(newTasks);
@@ -54,12 +72,12 @@ export function TareasYGuion() {
 
   const handleSave = async () => {
     if (!activeProject) {
-      alert("Por favor selecciona o crea un proyecto primero.");
+      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
       return;
     }
     
     if (tasks.some(t => !t.texto.trim() || !t.pregunta.trim() || !t.exito.trim())) {
-      alert("Todos los campos de las tareas son obligatorios. No se permiten datos en blanco.");
+      showModal('Validación', 'Todos los campos de las tareas son obligatorios. No se permiten datos en blanco.', 'error');
       return;
     }
 
@@ -71,11 +89,24 @@ export function TareasYGuion() {
         exito_esperado: t.exito
       }));
       await api.saveTareasGuion(activeProject.id, formattedTasks);
-      alert('Guion guardado correctamente');
+      setIsEditing(false);
+      showModal('Éxito', 'Guion guardado correctamente', 'success');
     } catch (e) {
       console.error(e);
-      alert('Error guardando el guion');
+      showModal('Error', 'Error guardando el guion', 'error');
     }
+  };
+
+  const handleEdit = () => {
+    if (!activeProject) {
+      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      return;
+    }
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setConfirmDiscardChanges(true);
   };
 
   const handleAddTask = () => {
@@ -89,16 +120,7 @@ export function TareasYGuion() {
   };
 
   const handleDeleteTask = (index: number) => {
-    if (confirm('¿Eliminar esta tarea?')) {
-      const newTasks = [...tasks];
-      newTasks.splice(index, 1);
-      // Renumerar IDs después de eliminar
-      const renumberedTasks = newTasks.map((task, i) => ({
-        ...task,
-        id: `T${i + 1}`
-      }));
-      setTasks(renumberedTasks);
-    }
+    setConfirmDelete({ open: true, index });
   };
 
   if (!activeProject) {
@@ -117,13 +139,34 @@ export function TareasYGuion() {
           <h1 className="text-3xl font-bold text-gray-900">Tareas y Guion de moderación - {activeProject.nombre}</h1>
           <p className="text-gray-600 mt-1">Guion completo para conducir la sesión de usabilidad</p>
         </div>
-        <button
-          onClick={handleSave}
-          className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
-        >
-          <Save className="w-4 h-4" />
-          Guardar guion
-        </button>
+        <div className="flex gap-3">
+          {isEditing ? (
+            <>
+              <button
+                onClick={handleSave}
+                className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
+              >
+                <Save className="w-4 h-4" />
+                Guardar guion
+              </button>
+              <button
+                onClick={handleCancel}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Cancelar
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleEdit}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Edit2 className="w-4 h-4" />
+              Editar
+            </button>
+          )}
+        </div>
       </header>
 
       <div className="max-w-[1100px] mx-auto space-y-6">
@@ -187,7 +230,10 @@ export function TareasYGuion() {
                         type="text"
                         value={task.texto}
                         onChange={(e) => handleTaskChange(index, 'texto', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                          !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                        }`}
                         placeholder="Describe la tarea que debe realizar el usuario..."
                       />
                     </td>
@@ -196,7 +242,10 @@ export function TareasYGuion() {
                         type="text"
                         value={task.pregunta}
                         onChange={(e) => handleTaskChange(index, 'pregunta', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                          !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                        }`}
                         placeholder="Pregunta para profundizar..."
                       />
                     </td>
@@ -205,32 +254,39 @@ export function TareasYGuion() {
                         type="text"
                         value={task.exito}
                         onChange={(e) => handleTaskChange(index, 'exito', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                          !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                        }`}
                         placeholder="¿Cómo saber si tuvo éxito?"
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <button
-                        onClick={() => handleDeleteTask(index)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Eliminar
-                      </button>
+                      {isEditing && (
+                        <button
+                          onClick={() => handleDeleteTask(index)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Eliminar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
-                <tr>
-                  <td colSpan={5} className="border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700">
-                    <button
-                      onClick={handleAddTask}
-                      className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Agregar tarea
-                    </button>
-                  </td>
-                </tr>
+                {isEditing && (
+                  <tr>
+                    <td colSpan={5} className="border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700">
+                      <button
+                        onClick={handleAddTask}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Agregar tarea
+                      </button>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -263,6 +319,49 @@ export function TareasYGuion() {
           </div>
         </Card>
       </div>
+
+      <MessageModal
+        open={modal.open}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        onClose={() => setModal((m) => ({ ...m, open: false }))}
+      />
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Eliminar tarea"
+        message="¿Seguro que deseas eliminar esta tarea del guion?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onCancel={() => setConfirmDelete({ open: false, index: -1 })}
+        onConfirm={() => {
+          if (confirmDelete.index < 0) return;
+          const newTasks = [...tasks];
+          newTasks.splice(confirmDelete.index, 1);
+          // Renumerar IDs después de eliminar
+          const renumberedTasks = newTasks.map((task, i) => ({
+            ...task,
+            id: `T${i + 1}`,
+          }));
+          setTasks(renumberedTasks);
+          setConfirmDelete({ open: false, index: -1 });
+        }}
+      />
+
+      <ConfirmModal
+        open={confirmDiscardChanges}
+        title="Descartar cambios"
+        message="¿Seguro que deseas descartar los cambios?"
+        confirmText="Descartar"
+        cancelText="Volver"
+        onCancel={() => setConfirmDiscardChanges(false)}
+        onConfirm={() => {
+          setConfirmDiscardChanges(false);
+          setIsEditing(false);
+          if (activeProject) loadData(activeProject.id);
+        }}
+      />
     </div>
   );
 }

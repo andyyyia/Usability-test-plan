@@ -75,7 +75,9 @@ export function Dashboard() {
         }
       });
 
-      const avgTime = obs.length > 0 ? (totalTiempo / obs.length / 60).toFixed(1) : 0;
+      // `observaciones.tiempo` se guarda como minutos (ej: 1.5, 2.0, 3.0).
+      // Por eso aquí NO dividimos entre 60.
+      const avgTime = obs.length > 0 ? (totalTiempo / obs.length).toFixed(1) : '0';
       const exitoRate = obs.length > 0 ? Math.round((exitos / obs.length) * 100) : 0;
 
       // Process task errors for chart

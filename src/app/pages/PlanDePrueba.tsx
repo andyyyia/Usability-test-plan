@@ -4,6 +4,8 @@ import { FormRow } from '../components/FormRow';
 import { Save, Edit2, X, Plus, Trash2 } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
+import { MessageModal } from '../components/MessageModal';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface Task {
   id: string;
@@ -15,8 +17,21 @@ interface Task {
 
 export function PlanDePrueba() {
   const { activeProject } = useProject();
-  const [isEditing, setIsEditing] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info',
+  });
+
+  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ open: true, title, message, variant });
+  };
+
+  const [confirmDeleteTask, setConfirmDeleteTask] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
+  const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
 
   // Contexto general
   const [producto, setProducto] = useState('');
@@ -46,6 +61,7 @@ export function PlanDePrueba() {
   const [notas, setNotas] = useState('');
 
   const handleTaskChange = (index: number, field: keyof Task, value: string) => {
+    if (!isEditing) return; // view mode: prevent manipulation
     const newTasks = [...tasks];
     newTasks[index] = { ...newTasks[index], [field]: value };
     setTasks(newTasks);
@@ -57,15 +73,7 @@ export function PlanDePrueba() {
   };
 
   const deleteTask = (index: number) => {
-    if (confirm('¿Eliminar esta tarea?')) {
-      const newTasks = tasks.filter((_, i) => i !== index);
-      // Renumerar IDs
-      const renumberedTasks = newTasks.map((task, i) => ({
-        ...task,
-        id: `T${i + 1}`
-      }));
-      setTasks(renumberedTasks);
-    }
+    setConfirmDeleteTask({ open: true, index });
   };
 
   useEffect(() => {
@@ -131,7 +139,7 @@ export function PlanDePrueba() {
 
   const handleSave = async () => {
     if (!activeProject) {
-      alert("Por favor selecciona o crea un proyecto primero.");
+      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
       return;
     }
 
@@ -139,7 +147,7 @@ export function PlanDePrueba() {
     const tareasInvalidas = tasks.some(t => !t.scenario.trim() || !t.expectedResult.trim() || !t.mainMetric.trim() || !t.successCriteria.trim());
     
     if (generalesInvalidos || tareasInvalidas) {
-      alert("Todos los campos del plan y de las tareas son obligatorios. No se permiten datos en blanco.");
+      showModal('Validación', 'Todos los campos del plan y de las tareas son obligatorios. No se permiten datos en blanco.', 'error');
       return;
     }
 
@@ -171,28 +179,23 @@ export function PlanDePrueba() {
       await api.saveTareasPlan(activeProject.id, formattedTasks);
 
       setIsEditing(false);
-      alert('Plan guardado correctamente');
+      showModal('Éxito', 'Plan guardado correctamente', 'success');
     } catch (e) {
       console.error(e);
-      alert('Error guardando el plan');
+      showModal('Error', 'Error guardando el plan', 'error');
     }
   };
 
   const handleEdit = () => {
     if (!activeProject) {
-      alert("Por favor selecciona o crea un proyecto primero.");
+      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
       return;
     }
     setIsEditing(true);
   };
 
   const handleCancel = () => {
-    if (confirm('¿Descartar cambios?')) {
-      setIsEditing(false);
-      if (activeProject) {
-        loadData(activeProject.id); // reload original state
-      }
-    }
+    setConfirmDiscardChanges(true);
   };
 
   if (!activeProject) {
@@ -250,6 +253,7 @@ export function PlanDePrueba() {
                 value={producto}
                 onChange={setProducto}
                 placeholder="Nombre del producto o servicio"
+                disabled={!isEditing}
               />
               <div className="mb-3">
                 <p className="text-xs text-gray-500 ml-52">Especifica el nombre completo del producto a evaluar</p>
@@ -260,6 +264,7 @@ export function PlanDePrueba() {
                 value={pantalla}
                 onChange={setPantalla}
                 placeholder="Área específica a evaluar"
+                disabled={!isEditing}
               />
 
               <FormRow
@@ -267,6 +272,7 @@ export function PlanDePrueba() {
                 value={objetivo}
                 onChange={setObjetivo}
                 placeholder="¿Qué quieres validar o descubrir?"
+                disabled={!isEditing}
               />
               <div className="mb-3">
                 <p className="text-xs text-gray-500 ml-52">Define claramente qué aspecto de usabilidad se evaluará</p>
@@ -277,6 +283,7 @@ export function PlanDePrueba() {
                 value={perfil}
                 onChange={setPerfil}
                 placeholder="Características de los participantes"
+                disabled={!isEditing}
               />
 
               <div className="flex items-center gap-4 mb-3">
@@ -287,6 +294,7 @@ export function PlanDePrueba() {
                   value={metodo}
                   onChange={(e) => setMetodo(e.target.value)}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={!isEditing}
                 >
                   <option value="">Seleccionar método...</option>
                   <option value="presencial">Presencial</option>
@@ -301,6 +309,7 @@ export function PlanDePrueba() {
                 value={fecha}
                 onChange={setFecha}
                 type="date"
+                disabled={!isEditing}
               />
 
               <FormRow
@@ -308,6 +317,7 @@ export function PlanDePrueba() {
                 value={lugar}
                 onChange={setLugar}
                 placeholder="Presencial, remoto, laboratorio..."
+                disabled={!isEditing}
               />
 
               <FormRow
@@ -315,6 +325,7 @@ export function PlanDePrueba() {
                 value={duracion}
                 onChange={setDuracion}
                 placeholder="Ej: 45 min por sesión"
+                disabled={!isEditing}
               />
             </div>
           </Card>
@@ -356,7 +367,10 @@ export function PlanDePrueba() {
                           type="text"
                           value={task.scenario}
                           onChange={(e) => handleTaskChange(index, 'scenario', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                          disabled={!isEditing}
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          }`}
                           placeholder="Describe el escenario..."
                         />
                       </td>
@@ -365,7 +379,10 @@ export function PlanDePrueba() {
                           type="text"
                           value={task.expectedResult}
                           onChange={(e) => handleTaskChange(index, 'expectedResult', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                          disabled={!isEditing}
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          }`}
                           placeholder="Resultado esperado..."
                         />
                       </td>
@@ -374,7 +391,10 @@ export function PlanDePrueba() {
                           type="text"
                           value={task.mainMetric}
                           onChange={(e) => handleTaskChange(index, 'mainMetric', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                          disabled={!isEditing}
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          }`}
                           placeholder="Ej: Tiempo, éxito..."
                         />
                       </td>
@@ -383,18 +403,23 @@ export function PlanDePrueba() {
                           type="text"
                           value={task.successCriteria}
                           onChange={(e) => handleTaskChange(index, 'successCriteria', e.target.value)}
-                          className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded"
+                          disabled={!isEditing}
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          }`}
                           placeholder="¿Cómo medir éxito?"
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2 text-center">
-                        <button
-                          onClick={() => deleteTask(index)}
-                          className="text-red-600 hover:text-red-800 transition-colors p-1"
-                          title="Eliminar tarea"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isEditing && (
+                          <button
+                            onClick={() => deleteTask(index)}
+                            className="text-red-600 hover:text-red-800 transition-colors p-1"
+                            title="Eliminar tarea"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -402,13 +427,15 @@ export function PlanDePrueba() {
               </table>
             </div>
             <div className="mt-4">
-              <button
-                onClick={addTask}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Añadir tarea
-              </button>
+              {isEditing && (
+                <button
+                  onClick={addTask}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Añadir tarea
+                </button>
+              )}
             </div>
           </Card>
 
@@ -448,11 +475,55 @@ export function PlanDePrueba() {
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Escribe aquí recordatorios, riesgos, sesgos a evitar o instrucciones para la sesión."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px] resize-y"
+              disabled={!isEditing}
+              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px] resize-y ${
+                !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+              }`}
             />
           </Card>
         </div>
       </div>
+
+      <MessageModal
+        open={modal.open}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        onClose={() => setModal((m) => ({ ...m, open: false }))}
+      />
+
+      <ConfirmModal
+        open={confirmDeleteTask.open}
+        title="Eliminar tarea"
+        message="¿Seguro que deseas eliminar esta tarea del plan?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onCancel={() => setConfirmDeleteTask({ open: false, index: -1 })}
+        onConfirm={() => {
+          if (confirmDeleteTask.index < 0) return;
+          const newTasks = tasks.filter((_, i) => i !== confirmDeleteTask.index);
+          const renumberedTasks = newTasks.map((task, i) => ({
+            ...task,
+            id: `T${i + 1}`,
+          }));
+          setTasks(renumberedTasks);
+          setConfirmDeleteTask({ open: false, index: -1 });
+        }}
+      />
+
+      <ConfirmModal
+        open={confirmDiscardChanges}
+        title="Descartar cambios"
+        message="¿Seguro que deseas descartar los cambios?"
+        confirmText="Descartar"
+        cancelText="Volver"
+        onCancel={() => setConfirmDiscardChanges(false)}
+        onConfirm={() => {
+          setConfirmDiscardChanges(false);
+          setIsEditing(false);
+          if (activeProject) loadData(activeProject.id);
+        }}
+      />
     </div>
   );
 }

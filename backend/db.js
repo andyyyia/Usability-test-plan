@@ -4,6 +4,7 @@ import mysql from 'mysql2/promise';
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root', // Default XAMPP user
+  port: '3307',
   password: '', // Default XAMPP password is empty
   database: 'usability_tests',
   waitForConnections: true,

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { Plus, Save, Trash2, Edit2, X } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
+import { MessageModal } from '../components/MessageModal';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface Observation {
   participante: string;
@@ -20,7 +22,21 @@ interface Observation {
 export function Observaciones() {
   const { activeProject } = useProject();
   const [observations, setObservations] = useState<Observation[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info',
+  });
+
+  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ open: true, title, message, variant });
+  };
+
+  const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
+  const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
 
   useEffect(() => {
     if (activeProject) {
@@ -43,9 +59,11 @@ export function Observaciones() {
       console.error(e);
     }
     setIsLoading(false);
+    setIsEditing(false);
   };
 
   const handleChange = (index: number, field: keyof Observation, value: string) => {
+    if (!isEditing) return;
     const newObservations = [...observations];
     newObservations[index] = { ...newObservations[index], [field]: value };
     setObservations(newObservations);
@@ -70,30 +88,40 @@ export function Observaciones() {
   };
 
   const deleteObservation = (index: number) => {
-    if (confirm('¿Eliminar esta observación?')) {
-      const newObservations = observations.filter((_, i) => i !== index);
-      setObservations(newObservations);
-    }
+    setConfirmDelete({ open: true, index });
   };
 
   const handleSave = async () => {
     if (!activeProject) {
-      alert("Por favor selecciona o crea un proyecto primero.");
+      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
       return;
     }
     
     if (observations.some(o => !o.participante.trim() || !o.perfil.trim() || !o.tarea.trim() || !o.exito.trim() || !String(o.tiempo).trim() || !String(o.errores).trim() || !o.comentarios.trim() || !o.problema.trim() || !o.severidad.trim() || !o.mejora.trim())) {
-      alert("Todos los campos de las observaciones son obligatorios. No se permiten datos en blanco.");
+      showModal('Validación', 'Todos los campos de las observaciones son obligatorios. No se permiten datos en blanco.', 'error');
       return;
     }
 
     try {
       await api.saveObservaciones(activeProject.id, observations);
-      alert('Observaciones guardadas correctamente');
+      setIsEditing(false);
+      showModal('Éxito', 'Observaciones guardadas correctamente', 'success');
     } catch (e) {
       console.error(e);
-      alert('Error guardando las observaciones');
+      showModal('Error', 'Error guardando las observaciones', 'error');
     }
+  };
+
+  const handleEdit = () => {
+    if (!activeProject) {
+      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      return;
+    }
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setConfirmDiscardChanges(true);
   };
 
   const getSeverityColor = (severity: string) => {
@@ -126,13 +154,34 @@ export function Observaciones() {
             <h1 className="text-3xl font-bold text-gray-900">Registro de observación - {activeProject.nombre}</h1>
             <p className="text-gray-600 mt-1">Documenta las observaciones durante las pruebas</p>
           </div>
-          <button
-            onClick={handleSave}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
-          >
-            <Save className="w-4 h-4" />
-            Guardar datos
-          </button>
+          <div className="flex gap-3">
+            {isEditing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
+                >
+                  <Save className="w-4 h-4" />
+                  Guardar datos
+                </button>
+                <button
+                  onClick={handleCancel}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  Cancelar
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={handleEdit}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Edit2 className="w-4 h-4" />
+                Editar
+              </button>
+            )}
+          </div>
         </header>
 
         <Card title="Observaciones del test">
@@ -183,7 +232,8 @@ export function Observaciones() {
                         type="text"
                         value={obs.participante}
                         onChange={(e) => handleChange(index, 'participante', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Usuario 1"
                       />
                     </td>
@@ -192,7 +242,8 @@ export function Observaciones() {
                         type="text"
                         value={obs.perfil}
                         onChange={(e) => handleChange(index, 'perfil', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Avanzado"
                       />
                     </td>
@@ -201,7 +252,8 @@ export function Observaciones() {
                         type="text"
                         value={obs.tarea}
                         onChange={(e) => handleChange(index, 'tarea', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="T1"
                       />
                     </td>
@@ -209,7 +261,8 @@ export function Observaciones() {
                       <select
                         value={obs.exito}
                         onChange={(e) => handleChange(index, 'exito', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                       >
                         <option value="">Seleccionar...</option>
                         <option value="Sí">Sí</option>
@@ -222,7 +275,8 @@ export function Observaciones() {
                         type="number"
                         value={obs.tiempo}
                         onChange={(e) => handleChange(index, 'tiempo', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="120"
                       />
                     </td>
@@ -231,7 +285,8 @@ export function Observaciones() {
                         type="number"
                         value={obs.errores}
                         onChange={(e) => handleChange(index, 'errores', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="2"
                       />
                     </td>
@@ -240,7 +295,8 @@ export function Observaciones() {
                         type="text"
                         value={obs.comentarios}
                         onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Comentarios..."
                       />
                     </td>
@@ -249,7 +305,8 @@ export function Observaciones() {
                         type="text"
                         value={obs.problema}
                         onChange={(e) => handleChange(index, 'problema', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Problema..."
                       />
                     </td>
@@ -257,7 +314,8 @@ export function Observaciones() {
                       <select
                         value={obs.severidad}
                         onChange={(e) => handleChange(index, 'severidad', e.target.value)}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${getSeverityColor(
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(
                           obs.severidad
                         )}`}
                       >
@@ -272,18 +330,21 @@ export function Observaciones() {
                         type="text"
                         value={obs.mejora}
                         onChange={(e) => handleChange(index, 'mejora', e.target.value)}
-                        className="w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent"
+                        disabled={!isEditing}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Mejora..."
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <button
-                        onClick={() => deleteObservation(index)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                        Eliminar
-                      </button>
+                      {isEditing && (
+                        <button
+                          onClick={() => deleteObservation(index)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Eliminar
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -292,16 +353,54 @@ export function Observaciones() {
           </div>
           
           <div className="mt-4">
-            <button
-              onClick={addObservation}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Añadir registro
-            </button>
+            {isEditing && (
+              <button
+                onClick={addObservation}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Añadir registro
+              </button>
+            )}
           </div>
         </Card>
       </div>
+      <MessageModal
+        open={modal.open}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        onClose={() => setModal((m) => ({ ...m, open: false }))}
+      />
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Eliminar observación"
+        message="¿Seguro que deseas eliminar esta observación?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onCancel={() => setConfirmDelete({ open: false, index: -1 })}
+        onConfirm={() => {
+          if (confirmDelete.index < 0) return;
+          const newObservations = observations.filter((_, i) => i !== confirmDelete.index);
+          setObservations(newObservations);
+          setConfirmDelete({ open: false, index: -1 });
+        }}
+      />
+
+      <ConfirmModal
+        open={confirmDiscardChanges}
+        title="Descartar cambios"
+        message="¿Seguro que deseas descartar los cambios?"
+        confirmText="Descartar"
+        cancelText="Volver"
+        onCancel={() => setConfirmDiscardChanges(false)}
+        onConfirm={() => {
+          setConfirmDiscardChanges(false);
+          setIsEditing(false);
+          if (activeProject) loadData(activeProject.id);
+        }}
+      />
     </div>
   );
 }

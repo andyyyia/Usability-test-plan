@@ -2,16 +2,27 @@ import { NavLink } from 'react-router';
 import { LayoutDashboard, FileText, ListChecks, Eye, TrendingUp, FolderPlus, Folder } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { useState } from 'react';
+import { MessageModal } from './MessageModal';
 
 export function Sidebar() {
   const { proyectos, activeProject, setActiveProject, createProyecto, refreshProyectos } = useProject();
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
+  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
+    open: false,
+    title: '',
+    message: '',
+    variant: 'info',
+  });
+
+  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
+    setModal({ open: true, title, message, variant });
+  };
 
   const handleCreate = async () => {
     if (!newProjectName.trim() || !newProjectDesc.trim()) {
-      alert('Todos los campos del proyecto son obligatorios. No se permiten datos en blanco.');
+      showModal('Validación', 'Todos los campos del proyecto son obligatorios. No se permiten datos en blanco.', 'error');
       return;
     }
     await createProyecto(newProjectName, newProjectDesc);
@@ -28,7 +39,10 @@ export function Sidebar() {
   ];
 
   return (
-    <aside aria-label="Menú principal" className="w-64 bg-white shadow-lg h-screen sticky top-0 flex flex-col">
+    <aside
+      aria-label="Menú principal"
+      className="w-full sm:w-64 bg-white shadow-lg h-auto sm:h-screen sm:sticky sm:top-0 flex flex-col overflow-y-auto"
+    >
       <div className="p-6 bg-[#1E3A5F]">
         <h2 className="text-white font-bold text-lg">UX Testing</h2>
         <p className="text-blue-200 text-sm mt-1">Sistema de Usabilidad</p>
@@ -38,7 +52,7 @@ export function Sidebar() {
           <div className="relative">
             <select
               id="project-select"
-              className="w-full bg-[#152d47] text-white text-sm rounded-md p-2 appearance-none border border-[#2a4d7a] focus:outline-none focus:border-blue-400"
+              className="w-full bg-[#152d47] text-white text-sm rounded-md py-2 pl-2 pr-8 appearance-none border border-[#2a4d7a] focus:outline-none focus:border-blue-400 truncate"
               value={activeProject?.id || ''}
               onChange={(e) => {
                 const p = proyectos.find((p) => p.id === Number(e.target.value));
@@ -120,6 +134,14 @@ export function Sidebar() {
           © 2026 Usability Testing Dashboard
         </p>
       </div>
+
+      <MessageModal
+        open={modal.open}
+        title={modal.title}
+        message={modal.message}
+        variant={modal.variant}
+        onClose={() => setModal((m) => ({ ...m, open: false }))}
+      />
     </aside>
   );
 }

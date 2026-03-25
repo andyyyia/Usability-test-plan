@@ -177,7 +177,12 @@ app.post('/api/tareas-guion/:proyectoId', async (req, res) => {
 app.get('/api/observaciones/:proyectoId', async (req, res) => {
   const { proyectoId } = req.params;
   try {
-    const [rows] = await pool.query('SELECT * FROM observaciones WHERE proyecto_id = ?', [proyectoId]);
+    // Frontend espera el campo `tarea`, pero en BD se guarda como `tarea_id`.
+    // Aliasing para que `Dashboard.tsx` y `Observaciones.tsx` funcionen con el mismo shape.
+    const [rows] = await pool.query(
+      'SELECT *, tarea_id AS tarea FROM observaciones WHERE proyecto_id = ?',
+      [proyectoId]
+    );
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -226,7 +231,8 @@ app.post('/api/hallazgos/:proyectoId', async (req, res) => {
   const hallazgos = req.body;
   
   if (!proyectoId) return res.status(400).json({ error: 'El ID del proyecto es obligatorio' });
-  if (hallazgos.some((h: any) => !h.problema || h.problema.trim() === '')) {
+  // Validate each hallazgo has the required "problema" field.
+  if (hallazgos.some((h) => !h.problema || h.problema.trim() === '')) {
     return res.status(400).json({ error: 'El campo problema es obligatorio para cada hallazgo' });
   }
 
