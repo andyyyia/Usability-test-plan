@@ -165,6 +165,7 @@ export function Dashboard() {
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card title="Errores por tarea">
+            <span className="sr-only">Gráfico de barras que muestra la cantidad de errores por cada tarea evaluada.</span>
             <div aria-hidden="true" style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={taskData}>
@@ -180,6 +181,7 @@ export function Dashboard() {
           </Card>
 
           <Card title="Distribución de severidad">
+            <span className="sr-only">Gráfico circular que muestra la distribución de hallazgos por nivel de severidad: Alta, Media y Baja.</span>
             <div aria-hidden="true" style={{ width: '100%', height: 300 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -212,9 +214,9 @@ export function Dashboard() {
                 <caption className="sr-only">Observaciones recientes</caption>
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Participante</th>
-                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Tarea</th>
-                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Estado</th>
+                    <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Participante</th>
+                    <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Tarea</th>
+                    <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Estado</th>
                   </tr>
                 </thead>
                 <tbody>

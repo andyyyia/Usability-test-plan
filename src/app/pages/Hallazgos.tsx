@@ -209,28 +209,28 @@ export function Hallazgos() {
             <table className="w-full border-collapse min-w-[1200px]">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[200px]">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[200px]">
                     Problema
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Evidencia observada
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[100px]">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[100px]">
                     Frecuencia
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[120px]">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[120px]">
                     Severidad
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Recomendación
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[120px]">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[120px]">
                     Prioridad
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[130px]">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[130px]">
                     Estado
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-32">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-32">
                     Acción
                   </th>
                 </tr>
@@ -246,6 +246,7 @@ export function Hallazgos() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Describe el problema..."
+                        aria-label={`Problema hallazgo ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -256,6 +257,7 @@ export function Hallazgos() {
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         rows={2}
                         placeholder="Qué se observó..."
+                        aria-label={`Evidencia hallazgo ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -266,6 +268,7 @@ export function Hallazgos() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="4/5"
+                        aria-label={`Frecuencia hallazgo ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -276,6 +279,7 @@ export function Hallazgos() {
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(
                           finding.severidad
                         )}`}
+                        aria-label={`Severidad hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
                         <option value="Alta">Alta</option>
@@ -291,6 +295,7 @@ export function Hallazgos() {
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         rows={2}
                         placeholder="Solución propuesta..."
+                        aria-label={`Recomendación hallazgo ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -301,6 +306,7 @@ export function Hallazgos() {
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getPriorityColor(
                           finding.prioridad
                         )}`}
+                        aria-label={`Prioridad hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
                         <option value="Alta">Alta</option>
@@ -316,6 +322,7 @@ export function Hallazgos() {
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getStatusColor(
                           finding.estado
                         )}`}
+                        aria-label={`Estado hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
                         <option value="Pendiente">Pendiente</option>
@@ -328,6 +335,7 @@ export function Hallazgos() {
                         <button
                           onClick={() => removeFinding(index)}
                           className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                          aria-label={`Eliminar hallazgo ${index + 1}`}
                         >
                           <Trash2 className="w-4 h-4" />
                           Eliminar

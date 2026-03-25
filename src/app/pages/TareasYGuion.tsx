@@ -202,19 +202,19 @@ export function TareasYGuion() {
             <table className="w-full border-collapse">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
                     ID
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Texto de la tarea
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Pregunta de seguimiento
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Éxito esperado
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Acciones
                   </th>
                 </tr>
@@ -235,6 +235,7 @@ export function TareasYGuion() {
                           !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
                         }`}
                         placeholder="Describe la tarea que debe realizar el usuario..."
+                        aria-label={`Texto tarea ${task.id}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -247,6 +248,7 @@ export function TareasYGuion() {
                           !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
                         }`}
                         placeholder="Pregunta para profundizar..."
+                        aria-label={`Pregunta tarea ${task.id}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -259,6 +261,7 @@ export function TareasYGuion() {
                           !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
                         }`}
                         placeholder="¿Cómo saber si tuvo éxito?"
+                        aria-label={`Éxito tarea ${task.id}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -266,6 +269,7 @@ export function TareasYGuion() {
                         <button
                           onClick={() => handleDeleteTask(index)}
                           className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          aria-label={`Eliminar tarea ${task.id}`}
                         >
                           <Trash2 className="w-4 h-4" />
                           Eliminar

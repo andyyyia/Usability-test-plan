@@ -66,14 +66,14 @@ export function Sidebar() {
                 </option>
               ))}
             </select>
-            <Folder className="absolute right-2 top-2.5 w-4 h-4 text-blue-300 pointer-events-none" />
+            <Folder aria-hidden="true" className="absolute right-2 top-2.5 w-4 h-4 text-blue-300 pointer-events-none" />
           </div>
           
           <button
             onClick={() => setIsCreating(!isCreating)}
             className="mt-3 w-full flex items-center justify-center gap-2 text-xs text-white hover:text-white transition-colors py-1 border border-transparent hover:border-blue-400 rounded-md bg-[#152d47] hover:bg-[#1a385f]"
           >
-            <FolderPlus className="w-3 h-3" />
+            <FolderPlus aria-hidden="true" className="w-3 h-3" />
             {isCreating ? 'Cancelar' : 'Nuevo Proyecto'}
           </button>
         </div>
@@ -120,7 +120,7 @@ export function Sidebar() {
                     }`
                   }
                 >
-                  <Icon className="w-5 h-5" />
+                  <Icon aria-hidden="true" className="w-5 h-5" />
                   <span className="font-medium">{item.label}</span>
                 </NavLink>
               </li>

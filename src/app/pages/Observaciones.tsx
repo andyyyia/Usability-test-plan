@@ -189,37 +189,37 @@ export function Observaciones() {
             <table className="w-full border-collapse min-w-[1400px]">
               <thead>
                 <tr className="bg-gray-50">
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Participante
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Perfil
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Tarea
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Éxito
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Tiempo (seg)
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Errores
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Comentarios clave
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Problema detectado
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Severidad
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                     Mejora propuesta
                   </th>
-                  <th className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-32">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-32">
                     Acción
                   </th>
                 </tr>
@@ -235,6 +235,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Usuario 1"
+                        aria-label={`Participante fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -245,6 +246,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Avanzado"
+                        aria-label={`Perfil fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -255,6 +257,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="T1"
+                        aria-label={`Tarea fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -263,6 +266,7 @@ export function Observaciones() {
                         onChange={(e) => handleChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        aria-label={`Éxito fila ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
                         <option value="Sí">Sí</option>
@@ -278,6 +282,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="120"
+                        aria-label={`Tiempo fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -288,6 +293,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="2"
+                        aria-label={`Errores fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -298,6 +304,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Comentarios..."
+                        aria-label={`Comentarios fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -308,6 +315,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Problema..."
+                        aria-label={`Problema fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -318,6 +326,7 @@ export function Observaciones() {
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(
                           obs.severidad
                         )}`}
+                        aria-label={`Severidad fila ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
                         <option value="Alta">Alta</option>
@@ -333,6 +342,7 @@ export function Observaciones() {
                         disabled={!isEditing}
                         className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
                         placeholder="Mejora..."
+                        aria-label={`Mejora fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -340,6 +350,7 @@ export function Observaciones() {
                         <button
                           onClick={() => deleteObservation(index)}
                           className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                          aria-label={`Eliminar observación ${index + 1}`}
                         >
                           <Trash2 className="w-4 h-4" />
                           Eliminar
