@@ -18,6 +18,7 @@ export function TareasYGuion() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
   const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
     open: false,
     title: '',
@@ -44,9 +45,11 @@ export function TareasYGuion() {
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);
+    let hasData = false;
     try {
       const backendTasks = await api.getTareasGuion(projectId);
       if (backendTasks && backendTasks.length > 0) {
+        hasData = true;
         setTasks(backendTasks.map((t: any) => ({
           id: t.identificador,
           texto: t.texto || '',
@@ -54,13 +57,13 @@ export function TareasYGuion() {
           exito: t.exito_esperado || ''
         })));
       } else {
-        setTasks([]);
+        setTasks([{ id: 'T1', texto: '', pregunta: '', exito: '' }]);
       }
     } catch (e) {
       console.error(e);
     }
     setIsLoading(false);
-    setIsEditing(false);
+    setIsEditing(!hasData);
   };
 
   const handleTaskChange = (index: number, field: keyof Task, value: string) => {
@@ -75,9 +78,24 @@ export function TareasYGuion() {
       showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
       return;
     }
-    
-    if (tasks.some(t => !t.texto.trim() || !t.pregunta.trim() || !t.exito.trim())) {
-      showModal('Validación', 'Todos los campos de las tareas son obligatorios. No se permiten datos en blanco.', 'error');
+    const newErrors: { index: number; field: string }[] = [];
+    tasks.forEach((t, index) => {
+      if (!t.texto.trim()) newErrors.push({ index, field: 'texto' });
+      if (!t.pregunta.trim()) newErrors.push({ index, field: 'pregunta' });
+      if (!t.exito.trim()) newErrors.push({ index, field: 'exito' });
+    });
+    setErrors(newErrors);
+
+    if (tasks.length === 0 || newErrors.length > 0) {
+      showModal('Validación', tasks.length === 0 ? 'Debe haber al menos una tarea.' : 'Faltan completar campos obligatorios en las tareas.', 'error');
+      
+      setTimeout(() => {
+        if (newErrors.length > 0) {
+          const firstErrorId = `task-${newErrors[0].index}-${newErrors[0].field}`;
+          const el = document.getElementById(firstErrorId);
+          if (el) el.focus();
+        }
+      }, 100);
       return;
     }
 
@@ -89,6 +107,7 @@ export function TareasYGuion() {
         exito_esperado: t.exito
       }));
       await api.saveTareasGuion(activeProject.id, formattedTasks);
+      setErrors([]);
       setIsEditing(false);
       showModal('Éxito', 'Guion guardado correctamente', 'success');
     } catch (e) {
@@ -227,39 +246,42 @@ export function TareasYGuion() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`task-${index}-texto`}
                         type="text"
                         value={task.texto}
                         onChange={(e) => handleTaskChange(index, 'texto', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
                           !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                        }`}
+                        } ${errors.some(e => e.index === index && e.field === 'texto') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Describe la tarea que debe realizar el usuario..."
                         aria-label={`Texto tarea ${task.id}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`task-${index}-pregunta`}
                         type="text"
                         value={task.pregunta}
                         onChange={(e) => handleTaskChange(index, 'pregunta', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
                           !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                        }`}
+                        } ${errors.some(e => e.index === index && e.field === 'pregunta') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Pregunta para profundizar..."
                         aria-label={`Pregunta tarea ${task.id}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`task-${index}-exito`}
                         type="text"
                         value={task.exito}
                         onChange={(e) => handleTaskChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
                           !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                        }`}
+                        } ${errors.some(e => e.index === index && e.field === 'exito') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="¿Cómo saber si tuvo éxito?"
                         aria-label={`Éxito tarea ${task.id}`}
                       />

@@ -21,6 +21,7 @@ export function Hallazgos() {
   const [findings, setFindings] = useState<Finding[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
   const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
     open: false,
     title: '',
@@ -45,18 +46,20 @@ export function Hallazgos() {
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);
+    let hasData = false;
     try {
       const data = await api.getHallazgos(projectId);
       if (data && data.length > 0) {
+        hasData = true;
         setFindings(data);
       } else {
-        setFindings([]);
+        setFindings([{ problema: '', evidencia: '', frecuencia: '', severidad: '', recomendacion: '', prioridad: '', estado: '' }]);
       }
     } catch (e) {
       console.error(e);
     }
     setIsLoading(false);
-    setIsEditing(false);
+    setIsEditing(!hasData);
   };
 
   const handleChange = (index: number, field: keyof Finding, value: string) => {
@@ -87,13 +90,34 @@ export function Hallazgos() {
       return;
     }
     
-    if (findings.some(f => !f.problema.trim() || !f.evidencia.trim() || !f.frecuencia.trim() || !f.severidad.trim() || !f.recomendacion.trim() || !f.prioridad.trim() || !f.estado.trim())) {
-      showModal('Validación', 'Todos los campos de los hallazgos son obligatorios. No se permiten datos en blanco.', 'error');
+    const newErrors: { index: number; field: string }[] = [];
+    findings.forEach((f, index) => {
+      if (!f.problema.trim()) newErrors.push({ index, field: 'problema' });
+      if (!f.evidencia.trim()) newErrors.push({ index, field: 'evidencia' });
+      if (!f.frecuencia.trim()) newErrors.push({ index, field: 'frecuencia' });
+      if (!f.severidad.trim()) newErrors.push({ index, field: 'severidad' });
+      if (!f.recomendacion.trim()) newErrors.push({ index, field: 'recomendacion' });
+      if (!f.prioridad.trim()) newErrors.push({ index, field: 'prioridad' });
+      if (!f.estado.trim()) newErrors.push({ index, field: 'estado' });
+    });
+    setErrors(newErrors);
+
+    if (findings.length === 0 || newErrors.length > 0) {
+      showModal('Validación', findings.length === 0 ? 'Debe registrar al menos un hallazgo.' : 'Faltan completar campos obligatorios en los hallazgos.', 'error');
+      
+      setTimeout(() => {
+        if (newErrors.length > 0) {
+          const firstErrorId = `fnd-${newErrors[0].index}-${newErrors[0].field}`;
+          const el = document.getElementById(firstErrorId);
+          if (el) el.focus();
+        }
+      }, 100);
       return;
     }
 
     try {
       await api.saveHallazgos(activeProject.id, findings);
+      setErrors([]);
       setIsEditing(false);
       showModal('Éxito', 'Hallazgos guardados correctamente', 'success');
     } catch (e) {
@@ -240,21 +264,23 @@ export function Hallazgos() {
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`fnd-${index}-problema`}
                         type="text"
                         value={finding.problema}
                         onChange={(e) => handleChange(index, 'problema', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Describe el problema..."
                         aria-label={`Problema hallazgo ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <textarea
+                        id={`fnd-${index}-evidencia`}
                         value={finding.evidencia}
                         onChange={(e) => handleChange(index, 'evidencia', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'evidencia') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         rows={2}
                         placeholder="Qué se observó..."
                         aria-label={`Evidencia hallazgo ${index + 1}`}
@@ -262,23 +288,23 @@ export function Hallazgos() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
+                        id={`fnd-${index}-frecuencia`}
                         type="text"
                         value={finding.frecuencia}
                         onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'frecuencia') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="4/5"
                         aria-label={`Frecuencia hallazgo ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <select
+                        id={`fnd-${index}-severidad`}
                         value={finding.severidad}
                         onChange={(e) => handleChange(index, 'severidad', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(
-                          finding.severidad
-                        )}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         aria-label={`Severidad hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -289,10 +315,11 @@ export function Hallazgos() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <textarea
+                        id={`fnd-${index}-recomendacion`}
                         value={finding.recomendacion}
                         onChange={(e) => handleChange(index, 'recomendacion', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'recomendacion') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         rows={2}
                         placeholder="Solución propuesta..."
                         aria-label={`Recomendación hallazgo ${index + 1}`}
@@ -300,12 +327,11 @@ export function Hallazgos() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <select
+                        id={`fnd-${index}-prioridad`}
                         value={finding.prioridad}
                         onChange={(e) => handleChange(index, 'prioridad', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getPriorityColor(
-                          finding.prioridad
-                        )}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getPriorityColor(finding.prioridad)} ${errors.some(e => e.index === index && e.field === 'prioridad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         aria-label={`Prioridad hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -316,12 +342,11 @@ export function Hallazgos() {
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <select
+                        id={`fnd-${index}-estado`}
                         value={finding.estado}
                         onChange={(e) => handleChange(index, 'estado', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getStatusColor(
-                          finding.estado
-                        )}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getStatusColor(finding.estado)} ${errors.some(e => e.index === index && e.field === 'estado') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         aria-label={`Estado hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>

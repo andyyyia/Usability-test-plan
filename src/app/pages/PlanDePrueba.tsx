@@ -19,6 +19,8 @@ export function PlanDePrueba() {
   const { activeProject } = useProject();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [taskErrors, setTaskErrors] = useState<{ index: number; field: string }[]>([]);
   const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
     open: false,
     title: '',
@@ -46,9 +48,6 @@ export function PlanDePrueba() {
   // Tareas del test
   const [tasks, setTasks] = useState<Task[]>([
     { id: 'T1', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
-    { id: 'T2', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
-    { id: 'T3', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
-    { id: 'T4', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
   ]);
 
   // Roles y logística
@@ -90,8 +89,10 @@ export function PlanDePrueba() {
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);
+    let hasData = false;
     try {
       const pData = await api.getPlan(projectId);
+      if (pData && (pData.producto || pData.pantalla || pData.objetivo)) hasData = true;
       if (pData) {
         setProducto(pData.producto || '');
         setPantalla(pData.pantalla || '');
@@ -125,16 +126,13 @@ export function PlanDePrueba() {
         // Reset tasks or use initial defaults if no tasks found
         setTasks([
           { id: 'T1', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
-          { id: 'T2', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
-          { id: 'T3', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
-          { id: 'T4', scenario: '', expectedResult: '', mainMetric: '', successCriteria: '' },
         ]);
       }
     } catch (e) {
       console.error(e);
     }
     setIsLoading(false);
-    setIsEditing(false); // start in view mode when loaded
+    setIsEditing(!hasData);
   };
 
   const handleSave = async () => {
@@ -143,11 +141,60 @@ export function PlanDePrueba() {
       return;
     }
 
-    const generalesInvalidos = !producto.trim() || !pantalla.trim() || !objetivo.trim() || !perfil.trim() || !metodo.trim() || !fecha.trim() || !lugar.trim() || !duracion.trim() || !moderador.trim() || !observador.trim() || !herramienta.trim() || !enlace.trim() || !notas.trim();
-    const tareasInvalidas = tasks.some(t => !t.scenario.trim() || !t.expectedResult.trim() || !t.mainMetric.trim() || !t.successCriteria.trim());
-    
-    if (generalesInvalidos || tareasInvalidas) {
-      showModal('Validación', 'Todos los campos del plan y de las tareas son obligatorios. No se permiten datos en blanco.', 'error');
+    const newErrors: string[] = [];
+    if (!producto.trim()) newErrors.push('producto');
+    if (!pantalla.trim()) newErrors.push('pantalla');
+    if (!objetivo.trim()) newErrors.push('objetivo');
+    if (!perfil.trim()) newErrors.push('perfil');
+    if (!metodo.trim()) newErrors.push('metodo');
+    if (!fecha.trim()) newErrors.push('fecha');
+    if (!lugar.trim()) newErrors.push('lugar');
+    if (!duracion.trim()) newErrors.push('duracion');
+    if (!moderador.trim()) newErrors.push('moderador');
+    if (!observador.trim()) newErrors.push('observador');
+    if (!herramienta.trim()) newErrors.push('herramienta');
+    if (!enlace.trim()) newErrors.push('enlace');
+    if (!notas.trim()) newErrors.push('notas');
+
+    const newTaskErrors: { index: number; field: string }[] = [];
+    if (tasks.length === 0) {
+      newErrors.push('tareas_empty');
+    } else {
+      tasks.forEach((t, index) => {
+        if (!t.scenario.trim()) newTaskErrors.push({ index, field: 'scenario' });
+        if (!t.expectedResult.trim()) newTaskErrors.push({ index, field: 'expectedResult' });
+        if (!t.mainMetric.trim()) newTaskErrors.push({ index, field: 'mainMetric' });
+        if (!t.successCriteria.trim()) newTaskErrors.push({ index, field: 'successCriteria' });
+      });
+    }
+
+    setErrors(newErrors);
+    setTaskErrors(newTaskErrors);
+
+    if (newErrors.length > 0 || newTaskErrors.length > 0) {
+      let errorMsg = 'Faltan completar los siguientes campos obligatorios:\n\n';
+      if (newErrors.length > 0 && !newErrors.includes('tareas_empty')) {
+         errorMsg += '- En Información general / logística.\n';
+      }
+      if (newErrors.includes('tareas_empty')) {
+         errorMsg += '- Debe haber al menos una tarea.\n';
+      }
+      if (newTaskErrors.length > 0) {
+         errorMsg += '- Faltan datos en las filas de tareas.\n';
+      }
+      
+      showModal('Validación', errorMsg, 'error');
+      
+      setTimeout(() => {
+        const firstErrorId = newErrors.length > 0 && newErrors[0] !== 'tareas_empty' ? newErrors[0] : 
+          (newTaskErrors.length > 0 ? `task-${newTaskErrors[0].index}-${newTaskErrors[0].field}` : null);
+        
+        if (firstErrorId) {
+          const el = document.getElementById(firstErrorId);
+          if (el) el.focus();
+        }
+      }, 100);
+      
       return;
     }
 
@@ -178,6 +225,8 @@ export function PlanDePrueba() {
       }));
       await api.saveTareasPlan(activeProject.id, formattedTasks);
 
+      setErrors([]);
+      setTaskErrors([]);
       setIsEditing(false);
       showModal('Éxito', 'Plan guardado correctamente', 'success');
     } catch (e) {
@@ -249,41 +298,49 @@ export function PlanDePrueba() {
           <Card title="Contexto general">
             <div>
               <FormRow
+                id="producto"
                 label="Producto / servicio"
                 value={producto}
                 onChange={setProducto}
                 placeholder="Nombre del producto o servicio"
                 disabled={!isEditing}
+                error={errors.includes('producto')}
               />
               <div className="mb-3">
                 <p className="text-xs text-gray-500 ml-52">Especifica el nombre completo del producto a evaluar</p>
               </div>
 
               <FormRow
+                id="pantalla"
                 label="Pantalla / módulo"
                 value={pantalla}
                 onChange={setPantalla}
                 placeholder="Área específica a evaluar"
                 disabled={!isEditing}
+                error={errors.includes('pantalla')}
               />
 
               <FormRow
+                id="objetivo"
                 label="Objetivo del test"
                 value={objetivo}
                 onChange={setObjetivo}
                 placeholder="¿Qué quieres validar o descubrir?"
                 disabled={!isEditing}
+                error={errors.includes('objetivo')}
               />
               <div className="mb-3">
                 <p className="text-xs text-gray-500 ml-52">Define claramente qué aspecto de usabilidad se evaluará</p>
               </div>
 
               <FormRow
+                id="perfil"
                 label="Perfil de usuarios"
                 value={perfil}
                 onChange={setPerfil}
                 placeholder="Características de los participantes"
                 disabled={!isEditing}
+                error={errors.includes('perfil')}
               />
 
               <div className="flex items-center gap-4 mb-3">
@@ -291,9 +348,12 @@ export function PlanDePrueba() {
                   Método
                 </label>
                 <select
+                  id="metodo"
                   value={metodo}
                   onChange={(e) => setMetodo(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                    errors.includes('metodo') ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                  }`}
                   disabled={!isEditing}
                 >
                   <option value="">Seleccionar método...</option>
@@ -305,27 +365,33 @@ export function PlanDePrueba() {
               </div>
 
               <FormRow
+                id="fecha"
                 label="Fecha"
                 value={fecha}
                 onChange={setFecha}
                 type="date"
                 disabled={!isEditing}
+                error={errors.includes('fecha')}
               />
 
               <FormRow
+                id="lugar"
                 label="Lugar / canal"
                 value={lugar}
                 onChange={setLugar}
                 placeholder="Presencial, remoto, laboratorio..."
                 disabled={!isEditing}
+                error={errors.includes('lugar')}
               />
 
               <FormRow
+                id="duracion"
                 label="Duración"
                 value={duracion}
                 onChange={setDuracion}
                 placeholder="Ej: 45 min por sesión"
                 disabled={!isEditing}
+                error={errors.includes('duracion')}
               />
             </div>
           </Card>
@@ -364,49 +430,53 @@ export function PlanDePrueba() {
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
                         <input
+                          id={`task-${index}-scenario`}
                           type="text"
                           value={task.scenario}
                           onChange={(e) => handleTaskChange(index, 'scenario', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
                             !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          }`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'scenario') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                           placeholder="Describe el escenario..."
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
                         <input
+                          id={`task-${index}-expectedResult`}
                           type="text"
                           value={task.expectedResult}
                           onChange={(e) => handleTaskChange(index, 'expectedResult', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
                             !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          }`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'expectedResult') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                           placeholder="Resultado esperado..."
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
                         <input
+                          id={`task-${index}-mainMetric`}
                           type="text"
                           value={task.mainMetric}
                           onChange={(e) => handleTaskChange(index, 'mainMetric', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
                             !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          }`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'mainMetric') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                           placeholder="Ej: Tiempo, éxito..."
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
                         <input
+                          id={`task-${index}-successCriteria`}
                           type="text"
                           value={task.successCriteria}
                           onChange={(e) => handleTaskChange(index, 'successCriteria', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-1 focus:ring-blue-500 rounded ${
+                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
                             !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          }`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'successCriteria') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                           placeholder="¿Cómo medir éxito?"
                         />
                       </td>
@@ -443,28 +513,40 @@ export function PlanDePrueba() {
           <Card title="Roles y logística">
             <div>
               <FormRow
+                id="moderador"
                 label="Moderador"
                 value={moderador}
                 onChange={setModerador}
                 placeholder="Nombre del moderador"
+                disabled={!isEditing}
+                error={errors.includes('moderador')}
               />
               <FormRow
+                id="observador"
                 label="Observador / note taker"
                 value={observador}
                 onChange={setObservador}
                 placeholder="Nombre del observador"
+                disabled={!isEditing}
+                error={errors.includes('observador')}
               />
               <FormRow
+                id="herramienta"
                 label="Herramienta / prototipo"
                 value={herramienta}
                 onChange={setHerramienta}
                 placeholder="Figma, prototipo HTML, app real..."
+                disabled={!isEditing}
+                error={errors.includes('herramienta')}
               />
               <FormRow
+                id="enlace"
                 label="Enlace / archivo"
                 value={enlace}
                 onChange={setEnlace}
                 placeholder="URL o ruta del archivo"
+                disabled={!isEditing}
+                error={errors.includes('enlace')}
               />
             </div>
           </Card>
@@ -472,13 +554,14 @@ export function PlanDePrueba() {
           {/* Card 4: Notas del moderador */}
           <Card title="Notas del moderador">
             <textarea
+              id="notas"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Escribe aquí recordatorios, riesgos, sesgos a evitar o instrucciones para la sesión."
               disabled={!isEditing}
-              className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent min-h-[200px] resize-y ${
+              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent min-h-[200px] resize-y ${
                 !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-              }`}
+              } ${errors.includes('notas') ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
             />
           </Card>
         </div>
