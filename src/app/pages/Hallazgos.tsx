@@ -69,6 +69,11 @@ export function Hallazgos() {
       return;
     }
     
+    if (findings.some(f => !f.problema.trim() || !f.evidencia.trim() || !f.frecuencia.trim() || !f.severidad.trim() || !f.recomendacion.trim() || !f.prioridad.trim() || !f.estado.trim())) {
+      alert("Todos los campos de los hallazgos son obligatorios. No se permiten datos en blanco.");
+      return;
+    }
+
     try {
       await api.saveHallazgos(activeProject.id, findings);
       alert('Hallazgos guardados correctamente');
@@ -138,7 +143,7 @@ export function Hallazgos() {
       <div className="max-w-[1100px] mx-auto">
         <header className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Síntesis de hallazgos y plan de mejora</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Síntesis de hallazgos y plan de mejora - {activeProject.nombre}</h1>
             <p className="text-gray-600 mt-1">Documenta problemas encontrados y sus recomendaciones</p>
           </div>
           <button
