@@ -3,7 +3,7 @@ import { Card } from '../components/Card';
 import { Save, Trash2, Plus, Edit2, X } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
-import { MessageModal } from '../components/MessageModal';
+import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 
 interface Task {
@@ -19,16 +19,7 @@ export function TareasYGuion() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
-  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
-    open: false,
-    title: '',
-    message: '',
-    variant: 'info',
-  });
-
-  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
-    setModal({ open: true, title, message, variant });
-  };
+  const [isSaving, setIsSaving] = useState(false);
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
@@ -75,20 +66,31 @@ export function TareasYGuion() {
 
   const handleSave = async () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
+    setIsSaving(true);
     const newErrors: { index: number; field: string }[] = [];
+    const cleanRowsIndexes = new Set<number>();
+
     tasks.forEach((t, index) => {
+      const isEmpty = !t.texto.trim() && !t.pregunta.trim() && !t.exito.trim();
+      if (isEmpty) {
+        cleanRowsIndexes.add(index);
+        return;
+      }
+
       if (!t.texto.trim()) newErrors.push({ index, field: 'texto' });
       if (!t.pregunta.trim()) newErrors.push({ index, field: 'pregunta' });
       if (!t.exito.trim()) newErrors.push({ index, field: 'exito' });
     });
     setErrors(newErrors);
 
-    if (tasks.length === 0 || newErrors.length > 0) {
-      showModal('Validación', tasks.length === 0 ? 'Debe haber al menos una tarea.' : 'Faltan completar campos obligatorios en las tareas.', 'error');
-      
+    const validData = tasks.filter((_, i) => !cleanRowsIndexes.has(i));
+
+    if (validData.length > 0 && newErrors.length > 0) {
+      toast.error('Validación', { description: 'Hay tareas parcialmente llenas. Faltan completar campos obligatorios.' });
+      setIsSaving(false);
       setTimeout(() => {
         if (newErrors.length > 0) {
           const firstErrorId = `task-${newErrors[0].index}-${newErrors[0].field}`;
@@ -100,25 +102,34 @@ export function TareasYGuion() {
     }
 
     try {
-      const formattedTasks = tasks.map(t => ({
-        identificador: t.id,
+      const formattedTasks = validData.map((t, i) => ({
+        identificador: `T${i + 1}`,
         texto: t.texto,
         pregunta: t.pregunta,
         exito_esperado: t.exito
       }));
       await api.saveTareasGuion(activeProject.id, formattedTasks);
+      
+      if (validData.length === 0) {
+        setTasks([{ id: 'T1', texto: '', pregunta: '', exito: '' }]);
+      } else {
+        setTasks(validData.map((t, i) => ({ ...t, id: `T${i + 1}` })));
+      }
+
       setErrors([]);
       setIsEditing(false);
-      showModal('Éxito', 'Guion guardado correctamente', 'success');
+      toast.success('Guion guardado correctamente');
     } catch (e) {
       console.error(e);
-      showModal('Error', 'Error guardando el guion', 'error');
+      toast.error('Error guardando el guion');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleEdit = () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
     setIsEditing(true);
@@ -159,24 +170,7 @@ export function TareasYGuion() {
           <p className="text-gray-600 mt-1">Guion completo para conducir la sesión de usabilidad</p>
         </div>
         <div className="flex gap-3">
-          {isEditing ? (
-            <>
-              <button
-                onClick={handleSave}
-                className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
-              >
-                <Save className="w-4 h-4" />
-                Guardar guion
-              </button>
-              <button
-                onClick={handleCancel}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Cancelar
-              </button>
-            </>
-          ) : (
+          {!isEditing && (
             <button
               onClick={handleEdit}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -218,7 +212,8 @@ export function TareasYGuion() {
         {/* Card 2: Tareas a leer durante el test */}
         <Card title="Tareas a leer durante el test">
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full border-collapse" aria-describedby="tareas-caption">
+              <caption id="tareas-caption" className="sr-only">Tabla de tareas y preguntas del test</caption>
               <thead>
                 <tr className="bg-gray-50">
                   <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
@@ -251,9 +246,8 @@ export function TareasYGuion() {
                         value={task.texto}
                         onChange={(e) => handleTaskChange(index, 'texto', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
-                          !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                        } ${errors.some(e => e.index === index && e.field === 'texto') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          } ${errors.some(e => e.index === index && e.field === 'texto') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Describe la tarea que debe realizar el usuario..."
                         aria-label={`Texto tarea ${task.id}`}
                       />
@@ -265,9 +259,8 @@ export function TareasYGuion() {
                         value={task.pregunta}
                         onChange={(e) => handleTaskChange(index, 'pregunta', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
-                          !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                        } ${errors.some(e => e.index === index && e.field === 'pregunta') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          } ${errors.some(e => e.index === index && e.field === 'pregunta') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Pregunta para profundizar..."
                         aria-label={`Pregunta tarea ${task.id}`}
                       />
@@ -279,9 +272,8 @@ export function TareasYGuion() {
                         value={task.exito}
                         onChange={(e) => handleTaskChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
-                          !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                        } ${errors.some(e => e.index === index && e.field === 'exito') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+                          } ${errors.some(e => e.index === index && e.field === 'exito') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="¿Cómo saber si tuvo éxito?"
                         aria-label={`Éxito tarea ${task.id}`}
                       />
@@ -324,7 +316,7 @@ export function TareasYGuion() {
             <p className="text-sm text-gray-700 mb-4">
               Asegúrate de realizar estas preguntas finales para cerrar la participación:
             </p>
-            
+
             <ul className="space-y-3 list-disc list-inside">
               <li className="text-sm text-gray-800">
                 <span className="font-semibold text-[#1E3A5F]">¿Qué fue lo más fácil del sistema?</span><br />
@@ -344,15 +336,28 @@ export function TareasYGuion() {
             </p>
           </div>
         </Card>
-      </div>
 
-      <MessageModal
-        open={modal.open}
-        title={modal.title}
-        message={modal.message}
-        variant={modal.variant}
-        onClose={() => setModal((m) => ({ ...m, open: false }))}
-      />
+        {isEditing && (
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
+            >
+              <X className="w-4 h-4" />
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+            >
+              <Save className="w-5 h-5" />
+              {isSaving ? 'Guardando...' : 'Guardar guion completo'}
+            </button>
+          </div>
+        )}
+      </div>
 
       <ConfirmModal
         open={confirmDelete.open}

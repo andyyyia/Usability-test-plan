@@ -85,7 +85,7 @@ export function Dashboard() {
         task: k,
         errores: erroresPorTarea[k]
       }));
-      setTaskData(tData.length > 0 ? tData : [{ task: 'Sin datos', errores: 0 }]);
+      setTaskData(tData);
 
       // Process Hallazgos
       const sevCounts = { Alta: 0, Media: 0, Baja: 0 };
@@ -166,81 +166,102 @@ export function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card title="Errores por tarea">
             <span className="sr-only">Gráfico de barras que muestra la cantidad de errores por cada tarea evaluada.</span>
-            <div aria-hidden="true" style={{ width: '100%', height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={taskData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="task" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="errores" fill="#1E3A5F" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {taskData.length > 0 ? (
+              <div aria-hidden="true" style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={taskData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="task" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="errores" fill="#1E3A5F" name={"Errores detectados"} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center p-6 text-gray-500 min-h-[300px]">
+                <AlertTriangle className="w-12 h-12 text-gray-300 mb-3" />
+                <p>No hay observaciones registradas aún.</p>
+              </div>
+            )}
           </Card>
 
           <Card title="Distribución de severidad">
             <span className="sr-only">Gráfico circular que muestra la distribución de hallazgos por nivel de severidad: Alta, Media y Baja.</span>
-            <div aria-hidden="true" style={{ width: '100%', height: 300 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={severityData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {severityData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
+            {severityData.every(d => d.value === 0) ? (
+              <div className="flex flex-col items-center justify-center p-6 text-gray-500 min-h-[300px]">
+                <AlertTriangle className="w-12 h-12 text-gray-300 mb-3" />
+                <p>No hay hallazgos registrados aún.</p>
+              </div>
+            ) : (
+              <div aria-hidden="true" style={{ width: '100%', height: 300 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={severityData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {severityData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36}/>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
           </Card>
         </div>
 
         {/* Tables Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card title="Observaciones recientes">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <caption className="sr-only">Observaciones recientes</caption>
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Participante</th>
-                    <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Tarea</th>
-                    <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Estado</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {recentObservations.map((obs, index) => (
-                    <tr key={index} className="border-b border-gray-100">
-                      <td className="py-3 px-3 text-sm">{obs.participante}</td>
-                      <td className="py-3 px-3 text-sm">{obs.tarea}</td>
-                      <td className="py-3 px-3 text-sm">
-                        <span
-                          className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                            obs.exito === 'No'
-                              ? 'bg-red-100 text-red-800'
-                              : obs.exito === 'Con ayuda'
-                              ? 'bg-orange-100 text-orange-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}
-                        >
-                          {obs.exito || 'N/A'}
-                        </span>
-                      </td>
+            <div className="overflow-x-auto min-h-[150px]">
+              {recentObservations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-6 text-gray-500">
+                  <p>Sin observaciones recientes.</p>
+                </div>
+              ) : (
+                <table className="w-full">
+                  <caption className="sr-only">Observaciones recientes</caption>
+                  <thead>
+                    <tr className="border-b border-gray-200">
+                      <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Participante</th>
+                      <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Tarea</th>
+                      <th scope="col" className="text-left py-2 px-3 text-sm font-semibold text-gray-700">Estado</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {recentObservations.map((obs, index) => (
+                      <tr key={index} className="border-b border-gray-100">
+                        <td className="py-3 px-3 text-sm">{obs.participante}</td>
+                        <td className="py-3 px-3 text-sm">{obs.tarea}</td>
+                        <td className="py-3 px-3 text-sm">
+                          <span
+                            className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                              obs.exito === 'No'
+                                ? 'bg-red-100 text-red-800'
+                                : obs.exito === 'Con ayuda'
+                                ? 'bg-orange-100 text-orange-800'
+                                : 'bg-green-100 text-green-800'
+                            }`}
+                          >
+                            {obs.exito || 'N/A'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </Card>
 

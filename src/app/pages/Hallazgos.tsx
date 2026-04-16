@@ -3,7 +3,7 @@ import { Card } from '../components/Card';
 import { Plus, Save, Trash2, Edit2, X } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
-import { MessageModal } from '../components/MessageModal';
+import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 
 interface Finding {
@@ -22,16 +22,7 @@ export function Hallazgos() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
-  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
-    open: false,
-    title: '',
-    message: '',
-    variant: 'info',
-  });
-
-  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
-    setModal({ open: true, title, message, variant });
-  };
+  const [isSaving, setIsSaving] = useState(false);
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
@@ -86,15 +77,29 @@ export function Hallazgos() {
 
   const handleSave = async () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
-    
+    setIsSaving(true);
+
     const newErrors: { index: number; field: string }[] = [];
+    const cleanRowsIndexes = new Set<number>();
+    const freqRegex = /^\d+\/\d+$/;
+
     findings.forEach((f, index) => {
+      const isEmpty = !f.problema.trim() && !f.evidencia.trim() && !f.frecuencia.trim() && 
+                      !f.severidad.trim() && !f.recomendacion.trim() && !f.prioridad.trim() && !f.estado.trim();
+      
+      if (isEmpty) {
+        cleanRowsIndexes.add(index);
+        return;
+      }
+
+      const freqVal = f.frecuencia.trim();
+
       if (!f.problema.trim()) newErrors.push({ index, field: 'problema' });
       if (!f.evidencia.trim()) newErrors.push({ index, field: 'evidencia' });
-      if (!f.frecuencia.trim()) newErrors.push({ index, field: 'frecuencia' });
+      if (!freqVal || !freqRegex.test(freqVal)) newErrors.push({ index, field: 'frecuencia' });
       if (!f.severidad.trim()) newErrors.push({ index, field: 'severidad' });
       if (!f.recomendacion.trim()) newErrors.push({ index, field: 'recomendacion' });
       if (!f.prioridad.trim()) newErrors.push({ index, field: 'prioridad' });
@@ -102,9 +107,11 @@ export function Hallazgos() {
     });
     setErrors(newErrors);
 
-    if (findings.length === 0 || newErrors.length > 0) {
-      showModal('Validación', findings.length === 0 ? 'Debe registrar al menos un hallazgo.' : 'Faltan completar campos obligatorios en los hallazgos.', 'error');
-      
+    const validData = findings.filter((_, i) => !cleanRowsIndexes.has(i));
+
+    if (validData.length > 0 && newErrors.length > 0) {
+      toast.error('Validación', { description: 'Hay filas parcialmente llenas o la frecuencia tiene un formato incorrecto (ej: 2/5).' });
+      setIsSaving(false);
       setTimeout(() => {
         if (newErrors.length > 0) {
           const firstErrorId = `fnd-${newErrors[0].index}-${newErrors[0].field}`;
@@ -116,19 +123,28 @@ export function Hallazgos() {
     }
 
     try {
-      await api.saveHallazgos(activeProject.id, findings);
+      await api.saveHallazgos(activeProject.id, validData);
+      
+      if (validData.length === 0) {
+         setFindings([{ problema: '', evidencia: '', frecuencia: '', severidad: '', recomendacion: '', prioridad: '', estado: '' }]);
+      } else {
+         setFindings(validData);
+      }
+
       setErrors([]);
       setIsEditing(false);
-      showModal('Éxito', 'Hallazgos guardados correctamente', 'success');
+      toast.success('Hallazgos guardados correctamente');
     } catch (e) {
       console.error(e);
-      showModal('Error', 'Error guardando los hallazgos', 'error');
+      toast.error('Error guardando los hallazgos');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleEdit = () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
     setIsEditing(true);
@@ -199,24 +215,7 @@ export function Hallazgos() {
             <p className="text-gray-600 mt-1">Documenta problemas encontrados y sus recomendaciones</p>
           </div>
           <div className="flex gap-3">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
-                >
-                  <Save className="w-4 h-4" />
-                  Guardar hallazgos
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                  Cancelar
-                </button>
-              </>
-            ) : (
+            {!isEditing && (
               <button
                 onClick={handleEdit}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -229,8 +228,9 @@ export function Hallazgos() {
         </header>
 
         <Card title="Hallazgos y recomendaciones">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[1200px]">
+          <div className="overflow-x-auto pb-4">
+            <table className="w-full border-collapse" aria-describedby="hallazgos-caption">
+              <caption id="hallazgos-caption" className="sr-only">Tabla de hallazgos y recomendaciones</caption>
               <thead>
                 <tr className="bg-gray-50">
                   <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[200px]">
@@ -263,14 +263,14 @@ export function Hallazgos() {
                 {findings.map((finding, index) => (
                   <tr key={index} className="hover:bg-gray-50">
                     <td className="border border-gray-300 px-3 py-2">
-                      <input
+                      <textarea
                         id={`fnd-${index}-problema`}
-                        type="text"
                         value={finding.problema}
                         onChange={(e) => handleChange(index, 'problema', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Describe el problema..."
+                        rows={2}
                         aria-label={`Problema hallazgo ${index + 1}`}
                       />
                     </td>
@@ -386,7 +386,29 @@ export function Hallazgos() {
           </div>
         </Card>
 
+        {isEditing && (
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
+            >
+              <X className="w-4 h-4" />
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+            >
+              <Save className="w-5 h-5" />
+              {isSaving ? 'Guardando...' : 'Guardar hallazgos completos'}
+            </button>
+          </div>
+        )}
+
         {/* Resumen de hallazgos críticos */}
+        <h2 className="sr-only">Resumen de hallazgos críticos</h2>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-2">
@@ -421,14 +443,6 @@ export function Hallazgos() {
             <p className="text-sm text-gray-600 mt-1">Mejoras menores</p>
           </div>
         </div>
-
-        <MessageModal
-          open={modal.open}
-          title={modal.title}
-          message={modal.message}
-          variant={modal.variant}
-          onClose={() => setModal((m) => ({ ...m, open: false }))}
-        />
 
         <ConfirmModal
           open={confirmDelete.open}

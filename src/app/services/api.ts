@@ -25,7 +25,23 @@ export const api = {
       .select();
     return handleResponse({ data: data?.[0], error });
   },
+  updateProyecto: async (id: number, nombre: string, descripcion: string) => {
+    const { data, error } = await supabase
+      .from('proyectos')
+      .update({ nombre, descripcion })
+      .eq('id', id)
+      .select();
+    return handleResponse({ data: data?.[0], error });
+  },
   deleteProyecto: async (id: number) => {
+    // Borrado preventivo en cascada manual de todas las entidades dependientes
+    await supabase.from('planes_prueba').delete().eq('proyecto_id', id);
+    await supabase.from('tareas_plan').delete().eq('proyecto_id', id);
+    await supabase.from('tareas_guion').delete().eq('proyecto_id', id);
+    await supabase.from('observaciones').delete().eq('proyecto_id', id);
+    await supabase.from('hallazgos').delete().eq('proyecto_id', id);
+    
+    // Eliminación del proyecto matriz
     const { error } = await supabase.from('proyectos').delete().eq('id', id);
     if (error) throw new Error(error.message);
   },
@@ -50,7 +66,8 @@ export const api = {
       .from('planes_prueba')
       .select('id')
       .eq('proyecto_id', planData.proyecto_id)
-      .single();
+      .limit(1)
+      .maybeSingle();
     
     let res;
     if (existing) {

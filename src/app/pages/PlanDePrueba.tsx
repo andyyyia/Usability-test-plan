@@ -4,8 +4,8 @@ import { FormRow } from '../components/FormRow';
 import { Save, Edit2, X, Plus, Trash2 } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
-import { MessageModal } from '../components/MessageModal';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { toast } from 'sonner';
 
 interface Task {
   id: string;
@@ -21,19 +21,14 @@ export function PlanDePrueba() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [taskErrors, setTaskErrors] = useState<{ index: number; field: string }[]>([]);
-  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
-    open: false,
-    title: '',
-    message: '',
-    variant: 'info',
-  });
-
-  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
-    setModal({ open: true, title, message, variant });
-  };
-
   const [confirmDeleteTask, setConfirmDeleteTask] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fecha limites
+  const currentYear = new Date().getFullYear();
+  const maxDate = `${currentYear + 1}-12-31`;
+  const minDate = '2020-01-01';
 
   // Contexto general
   const [producto, setProducto] = useState('');
@@ -137,9 +132,10 @@ export function PlanDePrueba() {
 
   const handleSave = async () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
+    setIsSaving(true);
 
     const newErrors: string[] = [];
     if (!producto.trim()) newErrors.push('producto');
@@ -147,7 +143,10 @@ export function PlanDePrueba() {
     if (!objetivo.trim()) newErrors.push('objetivo');
     if (!perfil.trim()) newErrors.push('perfil');
     if (!metodo.trim()) newErrors.push('metodo');
-    if (!fecha.trim()) newErrors.push('fecha');
+    const fechaEl = document.getElementById('fecha') as HTMLInputElement | null;
+    const isFechaBadInput = fechaEl?.validity.badInput || false;
+
+    if (!fecha.trim() || isFechaBadInput || fecha < minDate || fecha > maxDate) newErrors.push('fecha');
     if (!lugar.trim()) newErrors.push('lugar');
     if (!duracion.trim()) newErrors.push('duracion');
     if (!moderador.trim()) newErrors.push('moderador');
@@ -183,8 +182,16 @@ export function PlanDePrueba() {
          errorMsg += '- Faltan datos en las filas de tareas.\n';
       }
       
-      showModal('Validación', errorMsg, 'error');
+      if (newErrors.includes('fecha')) {
+         if (isFechaBadInput) {
+            errorMsg += '- La fecha ingresada es inválida o no existe en el calendario.\n';
+         } else if (fecha && (fecha < minDate || fecha > maxDate)) {
+            errorMsg += '- La fecha debe estar entre el ' + minDate + ' y el ' + maxDate + '.\n';
+         }
+      }
       
+      toast.error('Validación', { description: errorMsg, duration: 5000 });
+      setIsSaving(false);
       setTimeout(() => {
         const firstErrorId = newErrors.length > 0 && newErrors[0] !== 'tareas_empty' ? newErrors[0] : 
           (newTaskErrors.length > 0 ? `task-${newTaskErrors[0].index}-${newTaskErrors[0].field}` : null);
@@ -228,16 +235,18 @@ export function PlanDePrueba() {
       setErrors([]);
       setTaskErrors([]);
       setIsEditing(false);
-      showModal('Éxito', 'Plan guardado correctamente', 'success');
+      toast.success('Plan guardado correctamente');
     } catch (e) {
       console.error(e);
-      showModal('Error', 'Error guardando el plan', 'error');
+      toast.error('Error guardando el plan');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleEdit = () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
     setIsEditing(true);
@@ -265,24 +274,7 @@ export function PlanDePrueba() {
             <p className="text-gray-600 mt-1">Define el contexto y parámetros de la prueba</p>
           </div>
           <div className="flex gap-3">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
-                >
-                  <Save className="w-4 h-4" />
-                  Guardar plan
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                  Cancelar
-                </button>
-              </>
-            ) : (
+            {!isEditing && (
               <button
                 onClick={handleEdit}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -303,11 +295,13 @@ export function PlanDePrueba() {
                 value={producto}
                 onChange={setProducto}
                 placeholder="Nombre del producto o servicio"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('producto')}
+                errorMessage="Este campo es obligatorio"
+                required
               />
               <div className="mb-3">
-                <p className="text-xs text-gray-500 ml-52">Especifica el nombre completo del producto a evaluar</p>
+                <p className="text-xs text-gray-600 ml-52">Especifica el nombre completo del producto a evaluar</p>
               </div>
 
               <FormRow
@@ -316,8 +310,10 @@ export function PlanDePrueba() {
                 value={pantalla}
                 onChange={setPantalla}
                 placeholder="Área específica a evaluar"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('pantalla')}
+                errorMessage="Este campo es obligatorio"
+                required
               />
 
               <FormRow
@@ -326,11 +322,13 @@ export function PlanDePrueba() {
                 value={objetivo}
                 onChange={setObjetivo}
                 placeholder="¿Qué quieres validar o descubrir?"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('objetivo')}
+                errorMessage="Este campo es obligatorio"
+                required
               />
               <div className="mb-3">
-                <p className="text-xs text-gray-500 ml-52">Define claramente qué aspecto de usabilidad se evaluará</p>
+                <p className="text-xs text-gray-600 ml-52">Define claramente qué aspecto de usabilidad se evaluará</p>
               </div>
 
               <FormRow
@@ -339,29 +337,36 @@ export function PlanDePrueba() {
                 value={perfil}
                 onChange={setPerfil}
                 placeholder="Características de los participantes"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('perfil')}
+                errorMessage="Este campo es obligatorio"
+                required
               />
 
-              <div className="flex items-center gap-4 mb-3">
-                <label className="w-48 text-sm font-medium text-gray-700 flex-shrink-0">
-                  Método
+              <div className="flex items-start gap-4 mb-3">
+                <label htmlFor="metodo" className="w-48 text-sm font-medium text-gray-700 flex-shrink-0 mt-2">
+                  Método <span className="text-red-500">*</span>
                 </label>
-                <select
-                  id="metodo"
-                  value={metodo}
-                  onChange={(e) => setMetodo(e.target.value)}
-                  className={`flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
-                    errors.includes('metodo') ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                  }`}
-                  disabled={!isEditing}
-                >
-                  <option value="">Seleccionar método...</option>
-                  <option value="presencial">Presencial</option>
-                  <option value="remoto">Remoto</option>
-                  <option value="hibrido">Híbrido</option>
-                  <option value="guerrilla">Guerrilla</option>
-                </select>
+                <div className="flex-1">
+                  <select
+                    id="metodo"
+                    value={metodo}
+                    onChange={(e) => setMetodo(e.target.value)}
+                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
+                      errors.includes('metodo') ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
+                    } ${(!isEditing || isSaving) ? '!bg-gray-100 !text-gray-500 cursor-not-allowed' : ''}`}
+                    disabled={!isEditing || isSaving}
+                  >
+                    <option value="">Seleccionar método...</option>
+                    <option value="presencial">Presencial</option>
+                    <option value="remoto">Remoto</option>
+                    <option value="hibrido">Híbrido</option>
+                    <option value="guerrilla">Guerrilla</option>
+                  </select>
+                  {errors.includes('metodo') && (
+                    <p className="mt-1 text-xs text-red-600 font-medium">Este campo es obligatorio</p>
+                  )}
+                </div>
               </div>
 
               <FormRow
@@ -370,8 +375,12 @@ export function PlanDePrueba() {
                 value={fecha}
                 onChange={setFecha}
                 type="date"
-                disabled={!isEditing}
+                min={minDate}
+                max={maxDate}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('fecha')}
+                errorMessage={`Requerida (entre ${minDate.split('-')[0]} y ${maxDate.split('-')[0]})`}
+                required
               />
 
               <FormRow
@@ -380,8 +389,10 @@ export function PlanDePrueba() {
                 value={lugar}
                 onChange={setLugar}
                 placeholder="Presencial, remoto, laboratorio..."
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('lugar')}
+                errorMessage="Este campo es obligatorio"
+                required
               />
 
               <FormRow
@@ -390,8 +401,10 @@ export function PlanDePrueba() {
                 value={duracion}
                 onChange={setDuracion}
                 placeholder="Ej: 45 min por sesión"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('duracion')}
+                errorMessage="Este campo es obligatorio"
+                required
               />
             </div>
           </Card>
@@ -399,7 +412,8 @@ export function PlanDePrueba() {
           {/* Card 2: Tareas del test */}
           <Card title="Tareas del test">
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
+              <table className="w-full border-collapse" aria-describedby="plan-tareas-caption">
+                <caption id="plan-tareas-caption" className="sr-only">Tabla de tareas, escenarios y métricas del plan de prueba</caption>
                 <thead>
                   <tr className="bg-gray-50">
                     <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
@@ -518,8 +532,10 @@ export function PlanDePrueba() {
                 value={moderador}
                 onChange={setModerador}
                 placeholder="Nombre del moderador"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('moderador')}
+                errorMessage="Obligatorio"
+                required
               />
               <FormRow
                 id="observador"
@@ -527,8 +543,10 @@ export function PlanDePrueba() {
                 value={observador}
                 onChange={setObservador}
                 placeholder="Nombre del observador"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('observador')}
+                errorMessage="Obligatorio"
+                required
               />
               <FormRow
                 id="herramienta"
@@ -536,8 +554,10 @@ export function PlanDePrueba() {
                 value={herramienta}
                 onChange={setHerramienta}
                 placeholder="Figma, prototipo HTML, app real..."
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('herramienta')}
+                errorMessage="Obligatorio"
+                required
               />
               <FormRow
                 id="enlace"
@@ -545,8 +565,10 @@ export function PlanDePrueba() {
                 value={enlace}
                 onChange={setEnlace}
                 placeholder="URL o ruta del archivo"
-                disabled={!isEditing}
+                disabled={!isEditing || isSaving}
                 error={errors.includes('enlace')}
+                errorMessage="Obligatorio"
+                required
               />
             </div>
           </Card>
@@ -565,15 +587,28 @@ export function PlanDePrueba() {
             />
           </Card>
         </div>
-      </div>
 
-      <MessageModal
-        open={modal.open}
-        title={modal.title}
-        message={modal.message}
-        variant={modal.variant}
-        onClose={() => setModal((m) => ({ ...m, open: false }))}
-      />
+        {isEditing && (
+          <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
+            >
+              <X className="w-4 h-4" />
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+            >
+              <Save className="w-5 h-5" />
+              {isSaving ? 'Guardando...' : 'Guardar plan completo'}
+            </button>
+          </div>
+        )}
+      </div>
 
       <ConfirmModal
         open={confirmDeleteTask.open}
