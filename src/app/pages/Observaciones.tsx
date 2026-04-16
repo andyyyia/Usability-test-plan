@@ -3,7 +3,7 @@ import { Card } from '../components/Card';
 import { Plus, Save, Trash2, Edit2, X } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
-import { MessageModal } from '../components/MessageModal';
+import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 
 interface Observation {
@@ -25,16 +25,7 @@ export function Observaciones() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
-  const [modal, setModal] = useState<{ open: boolean; title: string; message: string; variant: 'success' | 'error' | 'info' }>({
-    open: false,
-    title: '',
-    message: '',
-    variant: 'info',
-  });
-
-  const showModal = (title: string, message: string, variant: 'success' | 'error' | 'info' = 'info') => {
-    setModal({ open: true, title, message, variant });
-  };
+  const [isSaving, setIsSaving] = useState(false);
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
@@ -96,18 +87,35 @@ export function Observaciones() {
 
   const handleSave = async () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
-    
+    setIsSaving(true);
+
     const newErrors: { index: number; field: string }[] = [];
+    const cleanRowsIndexes = new Set<number>();
+
     observations.forEach((o, index) => {
+      const tiempoStr = String(o.tiempo).trim();
+      const erroresStr = String(o.errores).trim();
+
+      const isEmpty = !o.participante.trim() && !o.perfil.trim() && !o.tarea.trim() && !o.exito.trim() && 
+                      !tiempoStr && !erroresStr && !o.comentarios.trim() && !o.problema.trim() && 
+                      !o.severidad.trim() && !o.mejora.trim();
+      
+      if (isEmpty) {
+        cleanRowsIndexes.add(index);
+        return;
+      }
+
       if (!o.participante.trim()) newErrors.push({ index, field: 'participante' });
       if (!o.perfil.trim()) newErrors.push({ index, field: 'perfil' });
       if (!o.tarea.trim()) newErrors.push({ index, field: 'tarea' });
       if (!o.exito.trim()) newErrors.push({ index, field: 'exito' });
-      if (!String(o.tiempo).trim()) newErrors.push({ index, field: 'tiempo' });
-      if (!String(o.errores).trim()) newErrors.push({ index, field: 'errores' });
+
+      if (!tiempoStr || Number(tiempoStr) < 0 || Number(tiempoStr) > 36000) newErrors.push({ index, field: 'tiempo' });
+      if (!erroresStr || Number(erroresStr) < 0 || Number(erroresStr) > 100) newErrors.push({ index, field: 'errores' });
+
       if (!o.comentarios.trim()) newErrors.push({ index, field: 'comentarios' });
       if (!o.problema.trim()) newErrors.push({ index, field: 'problema' });
       if (!o.severidad.trim()) newErrors.push({ index, field: 'severidad' });
@@ -115,9 +123,11 @@ export function Observaciones() {
     });
     setErrors(newErrors);
 
-    if (observations.length === 0 || newErrors.length > 0) {
-      showModal('Validación', observations.length === 0 ? 'Debe registrar al menos una observación.' : 'Faltan completar campos obligatorios en las observaciones.', 'error');
-      
+    const validData = observations.filter((_, i) => !cleanRowsIndexes.has(i));
+
+    if (validData.length > 0 && newErrors.length > 0) {
+      toast.error('Validación', { description: 'Hay filas parcialmente llenas o valores inválidos. Excesos de tiempo (>10 horas) o errores (>100) no permitidos.' });
+      setIsSaving(false);
       setTimeout(() => {
         if (newErrors.length > 0) {
           const firstErrorId = `obs-${newErrors[0].index}-${newErrors[0].field}`;
@@ -129,19 +139,28 @@ export function Observaciones() {
     }
 
     try {
-      await api.saveObservaciones(activeProject.id, observations);
+      await api.saveObservaciones(activeProject.id, validData);
+      
+      if (validData.length === 0) {
+        setObservations([{ participante: '', perfil: '', tarea: '', exito: '', tiempo: '', errores: '', comentarios: '', problema: '', severidad: '', mejora: '' }]);
+      } else {
+        setObservations(validData);
+      }
+
       setErrors([]);
       setIsEditing(false);
-      showModal('Éxito', 'Observaciones guardadas correctamente', 'success');
+      toast.success('Observaciones guardadas correctamente');
     } catch (e) {
       console.error(e);
-      showModal('Error', 'Error guardando las observaciones', 'error');
+      toast.error('Error guardando las observaciones');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleEdit = () => {
     if (!activeProject) {
-      showModal('Información', 'Por favor selecciona o crea un proyecto primero.', 'info');
+      toast.info('Por favor selecciona o crea un proyecto primero.');
       return;
     }
     setIsEditing(true);
@@ -182,24 +201,7 @@ export function Observaciones() {
             <p className="text-gray-600 mt-1">Documenta las observaciones durante las pruebas</p>
           </div>
           <div className="flex gap-3">
-            {isEditing ? (
-              <>
-                <button
-                  onClick={handleSave}
-                  className="flex items-center gap-2 px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
-                >
-                  <Save className="w-4 h-4" />
-                  Guardar datos
-                </button>
-                <button
-                  onClick={handleCancel}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                >
-                  <X className="w-4 h-4" />
-                  Cancelar
-                </button>
-              </>
-            ) : (
+            {!isEditing && (
               <button
                 onClick={handleEdit}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -212,8 +214,9 @@ export function Observaciones() {
         </header>
 
         <Card title="Observaciones del test">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse min-w-[1400px]">
+          <div className="overflow-x-auto pb-4">
+            <table className="w-full border-collapse" aria-describedby="observaciones-caption">
+              <caption id="observaciones-caption" className="sr-only">Tabla de observaciones detalladas del test</caption>
               <thead>
                 <tr className="bg-gray-50">
                   <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
@@ -309,10 +312,12 @@ export function Observaciones() {
                       <input
                         id={`obs-${index}-tiempo`}
                         type="number"
+                        min="0"
+                        max="36000"
                         value={obs.tiempo}
                         onChange={(e) => handleChange(index, 'tiempo', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full min-w-[80px] px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="120"
                         aria-label={`Tiempo fila ${index + 1}`}
                       />
@@ -321,35 +326,37 @@ export function Observaciones() {
                       <input
                         id={`obs-${index}-errores`}
                         type="number"
+                        min="0"
+                        max="100"
                         value={obs.errores}
                         onChange={(e) => handleChange(index, 'errores', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full min-w-[70px] px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="2"
                         aria-label={`Errores fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <input
+                      <textarea
                         id={`obs-${index}-comentarios`}
-                        type="text"
                         value={obs.comentarios}
                         onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Comentarios..."
+                        rows={2}
                         aria-label={`Comentarios fila ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <input
+                      <textarea
                         id={`obs-${index}-problema`}
-                        type="text"
                         value={obs.problema}
                         onChange={(e) => handleChange(index, 'problema', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Problema..."
+                        rows={2}
                         aria-label={`Problema fila ${index + 1}`}
                       />
                     </td>
@@ -369,14 +376,14 @@ export function Observaciones() {
                       </select>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <input
+                      <textarea
                         id={`obs-${index}-mejora`}
-                        type="text"
                         value={obs.mejora}
                         onChange={(e) => handleChange(index, 'mejora', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Mejora..."
+                        rows={2}
                         aria-label={`Mejora fila ${index + 1}`}
                       />
                     </td>
@@ -397,7 +404,7 @@ export function Observaciones() {
               </tbody>
             </table>
           </div>
-          
+
           <div className="mt-4">
             {isEditing && (
               <button
@@ -410,14 +417,28 @@ export function Observaciones() {
             )}
           </div>
         </Card>
+
+        {isEditing && (
+          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+            <button
+              onClick={handleCancel}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
+            >
+              <X className="w-4 h-4" />
+              Cancelar
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+            >
+              <Save className="w-5 h-5" />
+              {isSaving ? 'Guardando...' : 'Guardar observaciones completas'}
+            </button>
+          </div>
+        )}
       </div>
-      <MessageModal
-        open={modal.open}
-        title={modal.title}
-        message={modal.message}
-        variant={modal.variant}
-        onClose={() => setModal((m) => ({ ...m, open: false }))}
-      />
 
       <ConfirmModal
         open={confirmDelete.open}

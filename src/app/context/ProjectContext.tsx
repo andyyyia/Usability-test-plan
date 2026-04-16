@@ -13,6 +13,8 @@ interface ProjectContextType {
   setActiveProject: (p: Proyecto | null) => void;
   refreshProyectos: () => Promise<void>;
   createProyecto: (nombre: string, desc: string) => Promise<void>;
+  editProyecto: (id: number, nombre: string, desc: string) => Promise<void>;
+  deleteProyecto: (id: number) => Promise<void>;
 }
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
@@ -25,11 +27,12 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     try {
       const data = await api.getProyectos();
       setProyectos(data);
-      if (data.length > 0 && !activeProject) {
-        setActiveProject(data[0]);
-      } else if (data.length === 0) {
-        setActiveProject(null);
-      }
+      setActiveProject((prev) => {
+        if (data.length === 0) return null;
+        if (!prev) return data[0];
+        const stillExists = data.find((p: Proyecto) => p.id === prev.id);
+        return stillExists ? stillExists : data[0];
+      });
     } catch (e) {
       console.error('Error fetching proyectos:', e);
     }
@@ -39,6 +42,19 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
     const newP = await api.createProyecto(nombre, desc);
     await refreshProyectos();
     setActiveProject(newP);
+  };
+
+  const editProyecto = async (id: number, nombre: string, desc: string) => {
+    const updated = await api.updateProyecto(id, nombre, desc);
+    await refreshProyectos();
+    if (activeProject?.id === id) {
+      setActiveProject(updated);
+    }
+  };
+
+  const deleteProyecto = async (id: number) => {
+    await api.deleteProyecto(id);
+    await refreshProyectos();
   };
 
   useEffect(() => {
@@ -51,7 +67,9 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       activeProject,
       setActiveProject,
       refreshProyectos,
-      createProyecto
+      createProyecto,
+      editProyecto,
+      deleteProyecto
     }}>
       {children}
     </ProjectContext.Provider>
