@@ -5,6 +5,7 @@ import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { useUnsavedChanges } from '../context/UnsavedChangesContext';
 
 interface Observation {
   participante: string;
@@ -21,6 +22,7 @@ interface Observation {
 
 export function Observaciones() {
   const { activeProject } = useProject();
+  const { setUnsavedChanges } = useUnsavedChanges();
   const [observations, setObservations] = useState<Observation[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,6 +39,15 @@ export function Observaciones() {
       setObservations([]);
     }
   }, [activeProject]);
+
+  useEffect(() => {
+    const hasPendingChanges = isEditing && !isSaving;
+    setUnsavedChanges('observaciones', hasPendingChanges);
+
+    return () => {
+      setUnsavedChanges('observaciones', false);
+    };
+  }, [isEditing, isSaving, setUnsavedChanges]);
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);

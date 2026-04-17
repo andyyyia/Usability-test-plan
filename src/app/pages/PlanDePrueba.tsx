@@ -6,6 +6,7 @@ import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { toast } from 'sonner';
+import { useUnsavedChanges } from '../context/UnsavedChangesContext';
 
 interface Task {
   id: string;
@@ -17,6 +18,7 @@ interface Task {
 
 export function PlanDePrueba() {
   const { activeProject } = useProject();
+  const { setUnsavedChanges } = useUnsavedChanges();
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -25,10 +27,19 @@ export function PlanDePrueba() {
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fecha limites
-  const currentYear = new Date().getFullYear();
-  const maxDate = `${currentYear + 1}-12-31`;
-  const minDate = '2020-01-01';
+  // Fecha limites: desde hoy hasta 1 ano adelante
+  const formatAsInputDate = (d: Date) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const today = new Date();
+  const oneYearFromToday = new Date(today);
+  oneYearFromToday.setFullYear(oneYearFromToday.getFullYear() + 1);
+  const minDate = formatAsInputDate(today);
+  const maxDate = formatAsInputDate(oneYearFromToday);
 
   // Contexto general
   const [producto, setProducto] = useState('');
@@ -81,6 +92,15 @@ export function PlanDePrueba() {
       setTasks([]);
     }
   }, [activeProject]);
+
+  useEffect(() => {
+    const hasPendingChanges = isEditing && !isSaving;
+    setUnsavedChanges('plan-de-prueba', hasPendingChanges);
+
+    return () => {
+      setUnsavedChanges('plan-de-prueba', false);
+    };
+  }, [isEditing, isSaving, setUnsavedChanges]);
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);
@@ -185,8 +205,10 @@ export function PlanDePrueba() {
       if (newErrors.includes('fecha')) {
          if (isFechaBadInput) {
             errorMsg += '- La fecha ingresada es inválida o no existe en el calendario.\n';
-         } else if (fecha && (fecha < minDate || fecha > maxDate)) {
-            errorMsg += '- La fecha debe estar entre el ' + minDate + ' y el ' + maxDate + '.\n';
+        } else if (fecha && fecha < minDate) {
+          errorMsg += '- No se puede elegir una fecha anterior a la actual.\n';
+        } else if (fecha && fecha > maxDate) {
+          errorMsg += '- No se puede elegir una fecha muy en el futuro.\n';
          }
       }
       
@@ -254,6 +276,13 @@ export function PlanDePrueba() {
 
   const handleCancel = () => {
     setConfirmDiscardChanges(true);
+  };
+
+  const getFechaErrorMessage = () => {
+    if (!fecha.trim()) return 'Este campo es obligatorio';
+    if (fecha < minDate) return 'No se puede elegir una fecha anterior a la actual.';
+    if (fecha > maxDate) return 'No se puede elegir una fecha muy en el futuro.';
+    return 'La fecha ingresada es invalida.';
   };
 
   if (!activeProject) {
@@ -379,7 +408,7 @@ export function PlanDePrueba() {
                 max={maxDate}
                 disabled={!isEditing || isSaving}
                 error={errors.includes('fecha')}
-                errorMessage={`Requerida (entre ${minDate.split('-')[0]} y ${maxDate.split('-')[0]})`}
+                errorMessage={getFechaErrorMessage()}
                 required
               />
 
