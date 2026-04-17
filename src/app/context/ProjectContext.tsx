@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../services/api';
 
+const ACTIVE_PROJECT_STORAGE_KEY = 'usability-test-plan.active-project-id';
+
 interface Proyecto {
   id: number;
   nombre: string;
@@ -22,19 +24,36 @@ const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 export function ProjectProvider({ children }: { children: ReactNode }) {
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [activeProject, setActiveProject] = useState<Proyecto | null>(null);
+  const [hasLoadedProjects, setHasLoadedProjects] = useState(false);
 
   const refreshProyectos = async () => {
     try {
       const data = await api.getProyectos();
       setProyectos(data);
       setActiveProject((prev) => {
+        const storedProjectId = window.localStorage.getItem(ACTIVE_PROJECT_STORAGE_KEY);
+        const parsedStoredProjectId = storedProjectId ? Number(storedProjectId) : null;
+
         if (data.length === 0) return null;
-        if (!prev) return data[0];
-        const stillExists = data.find((p: Proyecto) => p.id === prev.id);
-        return stillExists ? stillExists : data[0];
+
+        if (prev) {
+          const stillExists = data.find((p: Proyecto) => p.id === prev.id);
+          return stillExists ? stillExists : data[0];
+        }
+
+        if (parsedStoredProjectId !== null && !Number.isNaN(parsedStoredProjectId)) {
+          const storedProject = data.find((p: Proyecto) => p.id === parsedStoredProjectId);
+          if (storedProject) {
+            return storedProject;
+          }
+        }
+
+        return data[0];
       });
     } catch (e) {
       console.error('Error fetching proyectos:', e);
+    } finally {
+      setHasLoadedProjects(true);
     }
   };
 
@@ -60,6 +79,19 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refreshProyectos();
   }, []);
+
+  useEffect(() => {
+    if (!hasLoadedProjects) {
+      return;
+    }
+
+    if (!activeProject) {
+      window.localStorage.removeItem(ACTIVE_PROJECT_STORAGE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(ACTIVE_PROJECT_STORAGE_KEY, String(activeProject.id));
+  }, [activeProject, hasLoadedProjects]);
 
   return (
     <ProjectContext.Provider value={{

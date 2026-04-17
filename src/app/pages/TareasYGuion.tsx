@@ -5,6 +5,7 @@ import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { useUnsavedChanges } from '../context/UnsavedChangesContext';
 
 interface Task {
   id: string;
@@ -15,6 +16,7 @@ interface Task {
 
 export function TareasYGuion() {
   const { activeProject } = useProject();
+  const { setUnsavedChanges } = useUnsavedChanges();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,6 +35,15 @@ export function TareasYGuion() {
       setTasks([]);
     }
   }, [activeProject]);
+
+  useEffect(() => {
+    const hasPendingChanges = isEditing && !isSaving;
+    setUnsavedChanges('tareas-y-guion', hasPendingChanges);
+
+    return () => {
+      setUnsavedChanges('tareas-y-guion', false);
+    };
+  }, [isEditing, isSaving, setUnsavedChanges]);
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);

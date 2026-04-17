@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { Plus, Save, Trash2, Edit2, X } from 'lucide-react';
+import { Plus, Save, Trash2, Pencil, X, BellRing, AlertTriangle, Check } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { useUnsavedChanges } from '../context/UnsavedChangesContext';
 
 interface Finding {
   problema: string;
@@ -18,6 +19,7 @@ interface Finding {
 
 export function Hallazgos() {
   const { activeProject } = useProject();
+  const { setUnsavedChanges } = useUnsavedChanges();
   const [findings, setFindings] = useState<Finding[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +36,15 @@ export function Hallazgos() {
       setFindings([]);
     }
   }, [activeProject]);
+
+  useEffect(() => {
+    const hasPendingChanges = isEditing && !isSaving;
+    setUnsavedChanges('hallazgos', hasPendingChanges);
+
+    return () => {
+      setUnsavedChanges('hallazgos', false);
+    };
+  }, [isEditing, isSaving, setUnsavedChanges]);
 
   const loadData = async (projectId: number) => {
     setIsLoading(true);
@@ -154,42 +165,89 @@ export function Hallazgos() {
     setConfirmDiscardChanges(true);
   };
 
+  const isInsufficientInfo = (value: string) => {
+    const trimmed = value.trim();
+    return trimmed.length > 0 && trimmed.length < 5;
+  };
+
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'Alta':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA]';
       case 'Media':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]';
       case 'Baja':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-white text-gray-900 border border-gray-300';
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'Alta':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-fuchsia-100 text-fuchsia-950 border border-fuchsia-300';
       case 'Media':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-amber-100 text-amber-950 border border-amber-300';
       case 'Baja':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-sky-100 text-sky-950 border border-sky-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-white text-gray-900 border border-gray-300';
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Resuelto':
-        return 'bg-green-100 text-green-800';
+        return 'bg-emerald-100 text-emerald-950 border border-emerald-300';
       case 'En progreso':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-blue-950 border border-blue-300';
       case 'Pendiente':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-100 text-slate-900 border border-slate-300';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-white text-gray-900 border border-gray-300';
+    }
+  };
+
+  const getSeverityBadgeContent = (severity: string) => {
+    switch (severity) {
+      case 'Alta':
+        return {
+          label: 'ALTA',
+          icon: <BellRing className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA]'
+        };
+      case 'Media':
+        return {
+          label: 'MEDIA',
+          icon: <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]'
+        };
+      case 'Baja':
+        return {
+          label: 'BAJA',
+          icon: <Check className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0]'
+        };
+      default:
+        return {
+          label: 'Sin severidad',
+          icon: null,
+          className: 'bg-gray-100 text-gray-800 border border-gray-300'
+        };
+    }
+  };
+
+  const getSeverityRowColor = (severity: string) => {
+    switch (severity) {
+      case 'Alta':
+        return 'bg-[#FEF2F2] hover:bg-[#FEE2E2]';
+      case 'Media':
+        return 'bg-[#FFFBEB] hover:bg-[#FEF3C7]';
+      case 'Baja':
+        return 'bg-[#F0FDF4] hover:bg-[#DCFCE7]';
+      default:
+        return 'hover:bg-gray-50';
     }
   };
 
@@ -209,23 +267,30 @@ export function Hallazgos() {
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
-        <header className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Síntesis de hallazgos y plan de mejora - {activeProject.nombre}</h1>
-            <p className="text-gray-600 mt-1">Documenta problemas encontrados y sus recomendaciones</p>
+            <p className="mt-1 text-gray-800">Documenta problemas encontrados y sus recomendaciones</p>
           </div>
           <div className="flex gap-3">
             {!isEditing && (
               <button
                 onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center justify-center rounded-md border border-blue-300 p-2 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                title="Editar hallazgo"
+                aria-label="Editar hallazgo"
               >
-                <Edit2 className="w-4 h-4" />
-                Editar
+                <Pencil className="w-4 h-4" />
               </button>
             )}
           </div>
-        </header>
+        </div>
+
+        {isEditing && (
+          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900" role="status" aria-live="polite">
+            Modo de edicion activado
+          </div>
+        )}
 
         <Card title="Hallazgos y recomendaciones">
           <div className="overflow-x-auto pb-4">
@@ -254,25 +319,28 @@ export function Hallazgos() {
                   <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[130px]">
                     Estado
                   </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-32">
+                  <th scope="col" className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-16">
                     Acción
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {findings.map((finding, index) => (
-                  <tr key={index} className="hover:bg-gray-50">
+                  <tr key={index} className={getSeverityRowColor(finding.severidad)}>
                     <td className="border border-gray-300 px-3 py-2">
                       <textarea
                         id={`fnd-${index}-problema`}
                         value={finding.problema}
                         onChange={(e) => handleChange(index, 'problema', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-800 cursor-not-allowed border-transparent' : 'border-gray-200 text-gray-900'} ${isInsufficientInfo(finding.problema) ? 'border-red-300 bg-red-50 ring-1 ring-red-200' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="Describe el problema..."
                         rows={2}
                         aria-label={`Problema hallazgo ${index + 1}`}
                       />
+                      {isEditing && isInsufficientInfo(finding.problema) && (
+                        <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
+                      )}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <textarea
@@ -280,7 +348,7 @@ export function Hallazgos() {
                         value={finding.evidencia}
                         onChange={(e) => handleChange(index, 'evidencia', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'evidencia') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-800 cursor-not-allowed' : 'text-gray-900'} ${errors.some(e => e.index === index && e.field === 'evidencia') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         rows={2}
                         placeholder="Qué se observó..."
                         aria-label={`Evidencia hallazgo ${index + 1}`}
@@ -293,25 +361,32 @@ export function Hallazgos() {
                         value={finding.frecuencia}
                         onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'frecuencia') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-900 cursor-not-allowed' : 'text-gray-900'} ${errors.some(e => e.index === index && e.field === 'frecuencia') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         placeholder="4/5"
                         aria-label={`Frecuencia hallazgo ${index + 1}`}
                       />
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <select
-                        id={`fnd-${index}-severidad`}
-                        value={finding.severidad}
-                        onChange={(e) => handleChange(index, 'severidad', e.target.value)}
-                        disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
-                        aria-label={`Severidad hallazgo ${index + 1}`}
-                      >
-                        <option value="">Seleccionar...</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Media">Media</option>
-                        <option value="Baja">Baja</option>
-                      </select>
+                      {isEditing ? (
+                        <select
+                          id={`fnd-${index}-severidad`}
+                          value={finding.severidad}
+                          onChange={(e) => handleChange(index, 'severidad', e.target.value)}
+                          disabled={!isEditing}
+                          className={`w-full px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:border-transparent rounded font-semibold ${!isEditing ? 'cursor-not-allowed' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                          aria-label={`Severidad hallazgo ${index + 1}`}
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="Alta">Alta</option>
+                          <option value="Media">Media</option>
+                          <option value="Baja">Baja</option>
+                        </select>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${getSeverityBadgeContent(finding.severidad).className}`}>
+                          {getSeverityBadgeContent(finding.severidad).icon}
+                          {getSeverityBadgeContent(finding.severidad).label}
+                        </span>
+                      )}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <textarea
@@ -319,11 +394,14 @@ export function Hallazgos() {
                         value={finding.recomendacion}
                         onChange={(e) => handleChange(index, 'recomendacion', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'recomendacion') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-800 cursor-not-allowed border-transparent' : 'border-gray-200 text-gray-900'} ${isInsufficientInfo(finding.recomendacion) ? 'border-red-300 bg-red-50 ring-1 ring-red-200' : ''} ${errors.some(e => e.index === index && e.field === 'recomendacion') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         rows={2}
                         placeholder="Solución propuesta..."
                         aria-label={`Recomendación hallazgo ${index + 1}`}
                       />
+                      {isEditing && isInsufficientInfo(finding.recomendacion) && (
+                        <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
+                      )}
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <select
@@ -331,7 +409,7 @@ export function Hallazgos() {
                         value={finding.prioridad}
                         onChange={(e) => handleChange(index, 'prioridad', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getPriorityColor(finding.prioridad)} ${errors.some(e => e.index === index && e.field === 'prioridad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-semibold ${!isEditing ? 'cursor-not-allowed' : ''} ${getPriorityColor(finding.prioridad)} ${errors.some(e => e.index === index && e.field === 'prioridad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         aria-label={`Prioridad hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -346,7 +424,7 @@ export function Hallazgos() {
                         value={finding.estado}
                         onChange={(e) => handleChange(index, 'estado', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-medium ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getStatusColor(finding.estado)} ${errors.some(e => e.index === index && e.field === 'estado') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded font-semibold ${!isEditing ? 'cursor-not-allowed' : ''} ${getStatusColor(finding.estado)} ${errors.some(e => e.index === index && e.field === 'estado') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
                         aria-label={`Estado hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -359,11 +437,11 @@ export function Hallazgos() {
                       {isEditing && (
                         <button
                           onClick={() => removeFinding(index)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                          className="inline-flex items-center justify-center rounded-md border border-red-300 p-2 text-red-700 hover:bg-red-50 hover:border-red-400 transition-colors"
+                          title={`Eliminar hallazgo ${index + 1}`}
                           aria-label={`Eliminar hallazgo ${index + 1}`}
                         >
                           <Trash2 className="w-4 h-4" />
-                          Eliminar
                         </button>
                       )}
                     </td>
@@ -377,10 +455,11 @@ export function Hallazgos() {
             {isEditing && (
               <button
                 onClick={addFinding}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-flex items-center justify-center rounded-md border border-blue-300 p-2 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                title="Anadir hallazgo"
+                aria-label="Anadir hallazgo"
               >
                 <Plus className="w-4 h-4" />
-                Añadir hallazgo
               </button>
             )}
           </div>
@@ -399,10 +478,11 @@ export function Hallazgos() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+              className={`inline-flex items-center justify-center rounded-md border border-[#1E3A5F] p-3 text-[#1E3A5F] transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#1E3A5F] hover:text-white'}`}
+              title="Guardar cambios"
+              aria-label="Guardar cambios"
             >
-              <Save className="w-5 h-5" />
-              {isSaving ? 'Guardando...' : 'Guardar hallazgos completos'}
+              <Save className="w-4 h-4" />
             </button>
           </div>
         )}
@@ -415,10 +495,10 @@ export function Hallazgos() {
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
               <h3 className="font-semibold text-gray-900">Severidad Alta</h3>
             </div>
-            <p className="text-3xl font-bold text-red-600">
+            <p className="text-3xl font-bold text-red-800">
               {findings.filter((f) => f.severidad === 'Alta').length}
             </p>
-            <p className="text-sm text-gray-600 mt-1">Problemas críticos</p>
+            <p className="mt-1 text-sm text-gray-800">Problemas críticos</p>
           </div>
 
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
@@ -426,10 +506,10 @@ export function Hallazgos() {
               <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
               <h3 className="font-semibold text-gray-900">Severidad Media</h3>
             </div>
-            <p className="text-3xl font-bold text-orange-600">
+            <p className="text-3xl font-bold text-orange-800">
               {findings.filter((f) => f.severidad === 'Media').length}
             </p>
-            <p className="text-sm text-gray-600 mt-1">Problemas moderados</p>
+            <p className="mt-1 text-sm text-gray-800">Problemas moderados</p>
           </div>
 
           <div className="bg-green-50 border border-green-200 rounded-lg p-6">
@@ -437,10 +517,10 @@ export function Hallazgos() {
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <h3 className="font-semibold text-gray-900">Severidad Baja</h3>
             </div>
-            <p className="text-3xl font-bold text-green-600">
+            <p className="text-3xl font-bold text-green-800">
               {findings.filter((f) => f.severidad === 'Baja').length}
             </p>
-            <p className="text-sm text-gray-600 mt-1">Mejoras menores</p>
+            <p className="mt-1 text-sm text-gray-800">Mejoras menores</p>
           </div>
         </div>
 
