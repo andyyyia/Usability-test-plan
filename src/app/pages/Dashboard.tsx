@@ -4,6 +4,8 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 import { CheckCircle, Clock, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
+import { Breadcrumbs } from '../components/Breadcrumbs';
+import { Stepper, StepItem } from '../components/Stepper';
 
 // Constants removed, relying on state
 
@@ -29,6 +31,12 @@ export function Dashboard() {
   const [severityData, setSeverityData] = useState<any[]>([]);
   const [recentObservations, setRecentObservations] = useState<any[]>([]);
   const [criticalProblems, setCriticalProblems] = useState<any[]>([]);
+  const [projectProgress, setProjectProgress] = useState({
+    hasPlan: false,
+    hasTareas: false,
+    hasObservaciones: false,
+    hasHallazgos: false,
+  });
 
   useEffect(() => {
     if (activeProject) {
@@ -55,8 +63,22 @@ export function Dashboard() {
   const loadDashboardData = async (projectId: number) => {
     setIsLoading(true);
     try {
+      const plan = await api.getPlan(projectId);
+      const tareasData = await api.getTareasGuion(projectId);
       const obs = await api.getObservaciones(projectId);
       const hall = await api.getHallazgos(projectId);
+
+      const hasPlan = !!plan;
+      const hasTareas = tareasData && tareasData.length > 0;
+      const hasObservaciones = obs.length > 0;
+      const hasHallazgos = hall.length > 0;
+
+      setProjectProgress({
+        hasPlan,
+        hasTareas,
+        hasObservaciones,
+        hasHallazgos,
+      });
 
       // Process Observations
       let exitos = 0;
@@ -126,13 +148,55 @@ export function Dashboard() {
     );
   }
 
+  const getSteps = (): StepItem[] => {
+    // Definir estado de cada paso basado en el progreso
+    const { hasPlan, hasTareas, hasObservaciones, hasHallazgos } = projectProgress;
+    
+    return [
+      { 
+        id: 1, 
+        label: 'Plan de prueba', 
+        status: hasPlan ? 'completed' : 'current' 
+      },
+      { 
+        id: 2, 
+        label: 'Tareas y guion', 
+        status: hasTareas ? 'completed' : (hasPlan ? 'current' : 'pending') 
+      },
+      { 
+        id: 3, 
+        label: 'Observaciones', 
+        status: hasObservaciones ? 'completed' : (hasTareas ? 'current' : 'pending') 
+      },
+      { 
+        id: 4, 
+        label: 'Hallazgos', 
+        status: hasHallazgos ? 'completed' : (hasObservaciones ? 'current' : 'pending') 
+      },
+      { 
+        id: 5, 
+        label: 'Reporte / Dashboard', 
+        status: hasHallazgos ? 'current' : 'pending',
+        statusText: hasHallazgos ? 'Listo para revisar' : 'Pendiente'
+      }
+    ];
+  };
+
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
-        <div className="mb-8">
+        <Breadcrumbs items={[
+          { label: 'Proyectos' },
+          { label: activeProject.nombre },
+          { label: 'Dashboard' }
+        ]} />
+
+        <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Dashboard - {activeProject.nombre}</h1>
-          <p className="text-gray-700 mt-1">Resumen general de las pruebas de usabilidad</p>
+          <p className="text-gray-700 mt-1">Resumen general y reporte final de las pruebas de usabilidad</p>
         </div>
+
+        <Stepper steps={getSteps()} />
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
