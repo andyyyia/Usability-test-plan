@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useUnsavedChanges } from '../context/UnsavedChangesContext';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { Stepper, StepItem } from '../components/Stepper';
+import { Stepper } from '../components/Stepper';
+import { useProjectProgress } from '../hooks/useProjectProgress';
 
 interface Observation {
   participante: string;
@@ -33,12 +34,7 @@ export function Observaciones() {
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
-  const [projectProgress, setProjectProgress] = useState({
-    hasPlan: false,
-    hasTareas: false,
-    hasObservaciones: false,
-    hasHallazgos: false,
-  });
+  const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -64,17 +60,7 @@ export function Observaciones() {
     setIsLoading(true);
     let hasData = false;
     try {
-      const plan = await api.getPlan(projectId);
-      const tareasData = await api.getTareasGuion(projectId);
       const data = await api.getObservaciones(projectId);
-      const hall = await api.getHallazgos(projectId);
-
-      setProjectProgress({
-        hasPlan: !!plan,
-        hasTareas: tareasData && tareasData.length > 0,
-        hasObservaciones: data && data.length > 0,
-        hasHallazgos: hall && hall.length > 0,
-      });
 
       if (data && data.length > 0) {
         hasData = true;
@@ -182,6 +168,7 @@ export function Observaciones() {
         setObservations(validData);
       }
 
+      reloadProgress();
       setErrors([]);
       setIsEditing(false);
       toast.success('Observaciones guardadas correctamente');
@@ -226,39 +213,6 @@ export function Observaciones() {
       </div>
     );
   }
-
-  const getSteps = (): StepItem[] => {
-    const { hasPlan, hasTareas, hasObservaciones, hasHallazgos } = projectProgress;
-    
-    return [
-      { 
-        id: 1, 
-        label: 'Plan de prueba', 
-        status: hasPlan ? 'completed' : 'current' 
-      },
-      { 
-        id: 2, 
-        label: 'Tareas y guion', 
-        status: hasTareas ? 'completed' : (hasPlan ? 'current' : 'pending') 
-      },
-      { 
-        id: 3, 
-        label: 'Observaciones', 
-        status: hasObservaciones ? 'completed' : (hasTareas ? 'current' : 'pending') 
-      },
-      { 
-        id: 4, 
-        label: 'Hallazgos', 
-        status: hasHallazgos ? 'completed' : (hasObservaciones ? 'current' : 'pending') 
-      },
-      { 
-        id: 5, 
-        label: 'Reporte / Dashboard', 
-        status: hasHallazgos ? 'current' : 'pending',
-        statusText: hasHallazgos ? 'Listo para revisar' : 'Pendiente'
-      }
-    ];
-  };
 
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;

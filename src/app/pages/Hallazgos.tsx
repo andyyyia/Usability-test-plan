@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useUnsavedChanges } from '../context/UnsavedChangesContext';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { Stepper, StepItem } from '../components/Stepper';
+import { Stepper } from '../components/Stepper';
+import { useProjectProgress } from '../hooks/useProjectProgress';
 
 interface Finding {
   problema: string;
@@ -30,12 +31,7 @@ export function Hallazgos() {
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
-  const [projectProgress, setProjectProgress] = useState({
-    hasPlan: false,
-    hasTareas: false,
-    hasObservaciones: false,
-    hasHallazgos: false,
-  });
+  const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
 
   useEffect(() => {
     if (activeProject) {
@@ -58,17 +54,7 @@ export function Hallazgos() {
     setIsLoading(true);
     let hasData = false;
     try {
-      const plan = await api.getPlan(projectId);
-      const tareasData = await api.getTareasGuion(projectId);
-      const obs = await api.getObservaciones(projectId);
       const data = await api.getHallazgos(projectId);
-
-      setProjectProgress({
-        hasPlan: !!plan,
-        hasTareas: tareasData && tareasData.length > 0,
-        hasObservaciones: obs && obs.length > 0,
-        hasHallazgos: data && data.length > 0,
-      });
 
       if (data && data.length > 0) {
         hasData = true;
@@ -161,6 +147,7 @@ export function Hallazgos() {
          setFindings(validData);
       }
 
+      reloadProgress();
       setErrors([]);
       setIsEditing(false);
       toast.success('Hallazgos guardados correctamente');
@@ -282,39 +269,6 @@ export function Hallazgos() {
       </div>
     );
   }
-
-  const getSteps = (): StepItem[] => {
-    const { hasPlan, hasTareas, hasObservaciones, hasHallazgos } = projectProgress;
-    
-    return [
-      { 
-        id: 1, 
-        label: 'Plan de prueba', 
-        status: hasPlan ? 'completed' : 'current' 
-      },
-      { 
-        id: 2, 
-        label: 'Tareas y guion', 
-        status: hasTareas ? 'completed' : (hasPlan ? 'current' : 'pending') 
-      },
-      { 
-        id: 3, 
-        label: 'Observaciones', 
-        status: hasObservaciones ? 'completed' : (hasTareas ? 'current' : 'pending') 
-      },
-      { 
-        id: 4, 
-        label: 'Hallazgos', 
-        status: hasHallazgos ? 'completed' : (hasObservaciones ? 'current' : 'pending') 
-      },
-      { 
-        id: 5, 
-        label: 'Reporte / Dashboard', 
-        status: hasHallazgos ? 'current' : 'pending',
-        statusText: hasHallazgos ? 'Listo para revisar' : 'Pendiente'
-      }
-    ];
-  };
 
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
