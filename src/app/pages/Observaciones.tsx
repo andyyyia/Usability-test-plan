@@ -6,6 +6,8 @@ import { api } from '../services/api';
 import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useUnsavedChanges } from '../context/UnsavedChangesContext';
+import { Breadcrumbs } from '../components/Breadcrumbs';
+import { Stepper, StepItem } from '../components/Stepper';
 
 interface Observation {
   participante: string;
@@ -31,6 +33,15 @@ export function Observaciones() {
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
+  const [projectProgress, setProjectProgress] = useState({
+    hasPlan: false,
+    hasTareas: false,
+    hasObservaciones: false,
+    hasHallazgos: false,
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (activeProject) {
@@ -53,7 +64,18 @@ export function Observaciones() {
     setIsLoading(true);
     let hasData = false;
     try {
+      const plan = await api.getPlan(projectId);
+      const tareasData = await api.getTareasGuion(projectId);
       const data = await api.getObservaciones(projectId);
+      const hall = await api.getHallazgos(projectId);
+
+      setProjectProgress({
+        hasPlan: !!plan,
+        hasTareas: tareasData && tareasData.length > 0,
+        hasObservaciones: data && data.length > 0,
+        hasHallazgos: hall && hall.length > 0,
+      });
+
       if (data && data.length > 0) {
         hasData = true;
         setObservations(data);
@@ -75,7 +97,7 @@ export function Observaciones() {
   };
 
   const addObservation = () => {
-    setObservations([
+    const newObservations = [
       ...observations,
       {
         participante: '',
@@ -89,7 +111,9 @@ export function Observaciones() {
         severidad: '',
         mejora: '',
       },
-    ]);
+    ];
+    setObservations(newObservations);
+    setCurrentPage(Math.ceil(newObservations.length / itemsPerPage));
   };
 
   const deleteObservation = (index: number) => {
@@ -203,10 +227,54 @@ export function Observaciones() {
     );
   }
 
+  const getSteps = (): StepItem[] => {
+    const { hasPlan, hasTareas, hasObservaciones, hasHallazgos } = projectProgress;
+    
+    return [
+      { 
+        id: 1, 
+        label: 'Plan de prueba', 
+        status: hasPlan ? 'completed' : 'current' 
+      },
+      { 
+        id: 2, 
+        label: 'Tareas y guion', 
+        status: hasTareas ? 'completed' : (hasPlan ? 'current' : 'pending') 
+      },
+      { 
+        id: 3, 
+        label: 'Observaciones', 
+        status: hasObservaciones ? 'completed' : (hasTareas ? 'current' : 'pending') 
+      },
+      { 
+        id: 4, 
+        label: 'Hallazgos', 
+        status: hasHallazgos ? 'completed' : (hasObservaciones ? 'current' : 'pending') 
+      },
+      { 
+        id: 5, 
+        label: 'Reporte / Dashboard', 
+        status: hasHallazgos ? 'current' : 'pending',
+        statusText: hasHallazgos ? 'Listo para revisar' : 'Pendiente'
+      }
+    ];
+  };
+
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentObservations = observations.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(observations.length / itemsPerPage);
+
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
-        <header className="mb-8 flex items-center justify-between">
+        <Breadcrumbs items={[
+          { label: 'Proyectos' },
+          { label: activeProject.nombre },
+          { label: 'Observaciones' }
+        ]} />
+
+        <header className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Registro de observación - {activeProject.nombre}</h1>
             <p className="text-gray-600 mt-1">Documenta las observaciones durante las pruebas</p>
@@ -223,6 +291,8 @@ export function Observaciones() {
             )}
           </div>
         </header>
+
+        <Stepper steps={getSteps()} />
 
         <Card title="Observaciones del test">
           <div className="overflow-x-auto pb-4">
@@ -266,7 +336,9 @@ export function Observaciones() {
                 </tr>
               </thead>
               <tbody>
-                {observations.map((obs, index) => (
+                {currentObservations.map((obs, localIndex) => {
+                  const index = indexOfFirstItem + localIndex;
+                  return (
                   <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
@@ -411,9 +483,37 @@ export function Observaciones() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
+          </div>
+
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              Mostrando {observations.length === 0 ? 0 : indexOfFirstItem + 1} a {Math.min(indexOfLastItem, observations.length)} de {observations.length} registros
+            </div>
+            {totalPages > 1 && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Anterior
+                </button>
+                <span className="px-3 py-1 text-sm text-gray-700">
+                  Página {currentPage} de {totalPages}
+                </span>
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border rounded text-sm disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="mt-4">

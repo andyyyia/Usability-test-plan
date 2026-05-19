@@ -6,6 +6,8 @@ import { api } from '../services/api';
 import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useUnsavedChanges } from '../context/UnsavedChangesContext';
+import { Breadcrumbs } from '../components/Breadcrumbs';
+import { Stepper, StepItem } from '../components/Stepper';
 
 interface Finding {
   problema: string;
@@ -28,6 +30,12 @@ export function Hallazgos() {
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
+  const [projectProgress, setProjectProgress] = useState({
+    hasPlan: false,
+    hasTareas: false,
+    hasObservaciones: false,
+    hasHallazgos: false,
+  });
 
   useEffect(() => {
     if (activeProject) {
@@ -50,7 +58,18 @@ export function Hallazgos() {
     setIsLoading(true);
     let hasData = false;
     try {
+      const plan = await api.getPlan(projectId);
+      const tareasData = await api.getTareasGuion(projectId);
+      const obs = await api.getObservaciones(projectId);
       const data = await api.getHallazgos(projectId);
+
+      setProjectProgress({
+        hasPlan: !!plan,
+        hasTareas: tareasData && tareasData.length > 0,
+        hasObservaciones: obs && obs.length > 0,
+        hasHallazgos: data && data.length > 0,
+      });
+
       if (data && data.length > 0) {
         hasData = true;
         setFindings(data);
@@ -264,10 +283,49 @@ export function Hallazgos() {
     );
   }
 
+  const getSteps = (): StepItem[] => {
+    const { hasPlan, hasTareas, hasObservaciones, hasHallazgos } = projectProgress;
+    
+    return [
+      { 
+        id: 1, 
+        label: 'Plan de prueba', 
+        status: hasPlan ? 'completed' : 'current' 
+      },
+      { 
+        id: 2, 
+        label: 'Tareas y guion', 
+        status: hasTareas ? 'completed' : (hasPlan ? 'current' : 'pending') 
+      },
+      { 
+        id: 3, 
+        label: 'Observaciones', 
+        status: hasObservaciones ? 'completed' : (hasTareas ? 'current' : 'pending') 
+      },
+      { 
+        id: 4, 
+        label: 'Hallazgos', 
+        status: hasHallazgos ? 'completed' : (hasObservaciones ? 'current' : 'pending') 
+      },
+      { 
+        id: 5, 
+        label: 'Reporte / Dashboard', 
+        status: hasHallazgos ? 'current' : 'pending',
+        statusText: hasHallazgos ? 'Listo para revisar' : 'Pendiente'
+      }
+    ];
+  };
+
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
-        <div className="mb-8 flex items-center justify-between">
+        <Breadcrumbs items={[
+          { label: 'Proyectos' },
+          { label: activeProject.nombre },
+          { label: 'Hallazgos' }
+        ]} />
+
+        <div className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Síntesis de hallazgos y plan de mejora - {activeProject.nombre}</h1>
             <p className="mt-1 text-gray-800">Documenta problemas encontrados y sus recomendaciones</p>
@@ -285,6 +343,8 @@ export function Hallazgos() {
             )}
           </div>
         </div>
+
+        <Stepper steps={getSteps()} />
 
         {isEditing && (
           <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900" role="status" aria-live="polite">
@@ -455,11 +515,10 @@ export function Hallazgos() {
             {isEditing && (
               <button
                 onClick={addFinding}
-                className="inline-flex items-center justify-center rounded-md border border-blue-300 p-2 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors"
-                title="Anadir hallazgo"
-                aria-label="Anadir hallazgo"
+                className="inline-flex items-center gap-2 rounded-md border border-blue-300 px-4 py-2 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors"
               >
                 <Plus className="w-4 h-4" />
+                <span className="font-medium">Agregar hallazgo</span>
               </button>
             )}
           </div>
@@ -478,11 +537,10 @@ export function Hallazgos() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className={`inline-flex items-center justify-center rounded-md border border-[#1E3A5F] p-3 text-[#1E3A5F] transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#1E3A5F] hover:text-white'}`}
-              title="Guardar cambios"
-              aria-label="Guardar cambios"
+              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
             >
-              <Save className="w-4 h-4" />
+              <Save className="w-5 h-5" />
+              {isSaving ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
         )}
@@ -490,37 +548,43 @@ export function Hallazgos() {
         {/* Resumen de hallazgos críticos */}
         <h2 className="sr-only">Resumen de hallazgos críticos</h2>
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-center gap-6">
+            <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-red-100 text-red-600">
+               <BellRing className="w-10 h-10" />
+            </div>
+            <div>
+              <p className="text-4xl font-bold text-red-800 leading-none mb-2">
+                {findings.filter((f) => f.severidad === 'Alta').length}
+              </p>
               <h3 className="font-semibold text-gray-900">Severidad Alta</h3>
+              <p className="text-sm text-gray-700">Problemas críticos</p>
             </div>
-            <p className="text-3xl font-bold text-red-800">
-              {findings.filter((f) => f.severidad === 'Alta').length}
-            </p>
-            <p className="mt-1 text-sm text-gray-800">Problemas críticos</p>
           </div>
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 flex items-center gap-6">
+            <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-orange-100 text-orange-600">
+               <AlertTriangle className="w-10 h-10" />
+            </div>
+            <div>
+              <p className="text-4xl font-bold text-orange-800 leading-none mb-2">
+                {findings.filter((f) => f.severidad === 'Media').length}
+              </p>
               <h3 className="font-semibold text-gray-900">Severidad Media</h3>
+              <p className="text-sm text-gray-700">Problemas moderados</p>
             </div>
-            <p className="text-3xl font-bold text-orange-800">
-              {findings.filter((f) => f.severidad === 'Media').length}
-            </p>
-            <p className="mt-1 text-sm text-gray-800">Problemas moderados</p>
           </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <h3 className="font-semibold text-gray-900">Severidad Baja</h3>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 flex items-center gap-6">
+            <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-green-100 text-green-600">
+               <Check className="w-10 h-10" />
             </div>
-            <p className="text-3xl font-bold text-green-800">
-              {findings.filter((f) => f.severidad === 'Baja').length}
-            </p>
-            <p className="mt-1 text-sm text-gray-800">Mejoras menores</p>
+            <div>
+              <p className="text-4xl font-bold text-green-800 leading-none mb-2">
+                {findings.filter((f) => f.severidad === 'Baja').length}
+              </p>
+              <h3 className="font-semibold text-gray-900">Severidad Baja</h3>
+              <p className="text-sm text-gray-700">Mejoras menores</p>
+            </div>
           </div>
         </div>
 
