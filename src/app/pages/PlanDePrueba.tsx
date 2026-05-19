@@ -7,6 +7,9 @@ import { api } from '../services/api';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { toast } from 'sonner';
 import { useUnsavedChanges } from '../context/UnsavedChangesContext';
+import { Breadcrumbs } from '../components/Breadcrumbs';
+import { Stepper } from '../components/Stepper';
+import { useProjectProgress } from '../hooks/useProjectProgress';
 
 interface Task {
   id: string;
@@ -26,6 +29,7 @@ export function PlanDePrueba() {
   const [confirmDeleteTask, setConfirmDeleteTask] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
 
   // Fecha limites: desde hoy hasta 1 ano adelante
   const formatAsInputDate = (d: Date) => {
@@ -254,6 +258,7 @@ export function PlanDePrueba() {
       }));
       await api.saveTareasPlan(activeProject.id, formattedTasks);
 
+      reloadProgress();
       setErrors([]);
       setTaskErrors([]);
       setIsEditing(false);
@@ -297,7 +302,13 @@ export function PlanDePrueba() {
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
       <div className="max-w-[1100px] mx-auto">
-        <header className="mb-8 flex items-center justify-between">
+        <Breadcrumbs items={[
+          { label: 'Proyectos' },
+          { label: activeProject.nombre },
+          { label: 'Plan de prueba' }
+        ]} />
+
+        <header className="mb-6 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Plan de prueba de usabilidad - {activeProject.nombre}</h1>
             <p className="text-gray-600 mt-1">Define el contexto y parámetros de la prueba</p>
@@ -314,6 +325,8 @@ export function PlanDePrueba() {
             )}
           </div>
         </header>
+
+        <Stepper steps={getSteps()} />
 
         <div className="space-y-6">
           <Card title="Contexto general">
