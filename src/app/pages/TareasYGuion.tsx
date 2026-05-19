@@ -6,6 +6,9 @@ import { api } from '../services/api';
 import { toast } from 'sonner';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useUnsavedChanges } from '../context/UnsavedChangesContext';
+import { Breadcrumbs } from '../components/Breadcrumbs';
+import { Stepper } from '../components/Stepper';
+import { useProjectProgress } from '../hooks/useProjectProgress';
 
 interface Task {
   id: string;
@@ -25,6 +28,7 @@ export function TareasYGuion() {
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
+  const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
 
   // No need for separate state for closing questions as they are just a guide
 
@@ -127,6 +131,7 @@ export function TareasYGuion() {
         setTasks(validData.map((t, i) => ({ ...t, id: `T${i + 1}` })));
       }
 
+      reloadProgress();
       setErrors([]);
       setIsEditing(false);
       toast.success('Guion guardado correctamente');
@@ -175,11 +180,18 @@ export function TareasYGuion() {
 
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
-      <header className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Tareas y Guion de moderación - {activeProject.nombre}</h1>
-          <p className="text-gray-600 mt-1">Guion completo para conducir la sesión de usabilidad</p>
-        </div>
+      <div className="max-w-[1100px] mx-auto space-y-6">
+        <Breadcrumbs items={[
+          { label: 'Proyectos' },
+          { label: activeProject.nombre },
+          { label: 'Tareas y guion' }
+        ]} />
+
+        <header className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Tareas y Guion de moderación - {activeProject.nombre}</h1>
+            <p className="text-gray-600 mt-1">Guion completo para conducir la sesión de usabilidad</p>
+          </div>
         <div className="flex gap-3">
           {!isEditing && (
             <button
@@ -193,8 +205,9 @@ export function TareasYGuion() {
         </div>
       </header>
 
-      <div className="max-w-[1100px] mx-auto space-y-6">
-        {/* Card 1: Inicio de la sesión */}
+      <Stepper steps={getSteps()} />
+
+      {/* Card 1: Inicio de la sesión */}
         <Card title="Inicio de la sesión">
           <div className="space-y-3">
             <p className="text-sm text-gray-700 mb-4">

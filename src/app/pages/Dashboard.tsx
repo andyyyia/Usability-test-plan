@@ -5,7 +5,8 @@ import { CheckCircle, Clock, AlertTriangle, TrendingUp } from 'lucide-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { Breadcrumbs } from '../components/Breadcrumbs';
-import { Stepper, StepItem } from '../components/Stepper';
+import { Stepper } from '../components/Stepper';
+import { useProjectProgress } from '../hooks/useProjectProgress';
 
 // Constants removed, relying on state
 
@@ -31,12 +32,7 @@ export function Dashboard() {
   const [severityData, setSeverityData] = useState<any[]>([]);
   const [recentObservations, setRecentObservations] = useState<any[]>([]);
   const [criticalProblems, setCriticalProblems] = useState<any[]>([]);
-  const [projectProgress, setProjectProgress] = useState({
-    hasPlan: false,
-    hasTareas: false,
-    hasObservaciones: false,
-    hasHallazgos: false,
-  });
+  const { getSteps } = useProjectProgress(activeProject?.id);
 
   useEffect(() => {
     if (activeProject) {
@@ -63,22 +59,8 @@ export function Dashboard() {
   const loadDashboardData = async (projectId: number) => {
     setIsLoading(true);
     try {
-      const plan = await api.getPlan(projectId);
-      const tareasData = await api.getTareasGuion(projectId);
       const obs = await api.getObservaciones(projectId);
       const hall = await api.getHallazgos(projectId);
-
-      const hasPlan = !!plan;
-      const hasTareas = tareasData && tareasData.length > 0;
-      const hasObservaciones = obs.length > 0;
-      const hasHallazgos = hall.length > 0;
-
-      setProjectProgress({
-        hasPlan,
-        hasTareas,
-        hasObservaciones,
-        hasHallazgos,
-      });
 
       // Process Observations
       let exitos = 0;
@@ -147,40 +129,6 @@ export function Dashboard() {
       </div>
     );
   }
-
-  const getSteps = (): StepItem[] => {
-    // Definir estado de cada paso basado en el progreso
-    const { hasPlan, hasTareas, hasObservaciones, hasHallazgos } = projectProgress;
-    
-    return [
-      { 
-        id: 1, 
-        label: 'Plan de prueba', 
-        status: hasPlan ? 'completed' : 'current' 
-      },
-      { 
-        id: 2, 
-        label: 'Tareas y guion', 
-        status: hasTareas ? 'completed' : (hasPlan ? 'current' : 'pending') 
-      },
-      { 
-        id: 3, 
-        label: 'Observaciones', 
-        status: hasObservaciones ? 'completed' : (hasTareas ? 'current' : 'pending') 
-      },
-      { 
-        id: 4, 
-        label: 'Hallazgos', 
-        status: hasHallazgos ? 'completed' : (hasObservaciones ? 'current' : 'pending') 
-      },
-      { 
-        id: 5, 
-        label: 'Reporte / Dashboard', 
-        status: hasHallazgos ? 'current' : 'pending',
-        statusText: hasHallazgos ? 'Listo para revisar' : 'Pendiente'
-      }
-    ];
-  };
 
   return (
     <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
