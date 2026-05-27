@@ -1,0 +1,87 @@
+:root {
+  /* TIPOGRAFÍA */
+  --font-title: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+
+  /* Escala tipográfica */
+  --text-xs: 11px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --text-3xl: 42px;
+
+  /* Pesos */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  /* COLORES */
+  --color-sidebar: #1e3a5f;
+  --color-sidebar-active: #2d5a9e;
+  --color-primary: #2d5a9e;
+  --color-primary-hover: #1e3a5f;
+  --color-primary-light: #e8f0fb;
+  --color-secondary: #06B6D4;
+
+  /* Semánticos */
+  --color-success: #22C55E;
+  --color-success-light: #DCFCE7;
+  --color-error: #EF4444;
+  --color-error-light: #FEE2E2;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-info: #3B82F6;
+  --color-info-light: #EFF6FF;
+
+  /* Neutros */
+  --color-bg: #F8FAFC;
+  --color-bg-card: #FFFFFF;
+  --color-bg-secondary: #F1F5F9;
+  --color-text: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94A3B8;
+  --color-border: #E2E8F0;
+  --color-border-strong: #CBD5E1;
+
+  /* ESPACIADO (múltiplos de 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-11: 44px;
+  --space-12: 48px;
+  --space-13: 52px;
+  --space-14: 56px;
+  --space-15: 60px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* BORDES */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* SOMBRAS */
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.08);
+  --shadow-lg: 0 8px 24px rgba(15,23,42,0.10);
+
+  /* TRANSICIONES */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+}
