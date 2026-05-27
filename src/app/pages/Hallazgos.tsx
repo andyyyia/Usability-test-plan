@@ -185,7 +185,7 @@ export function Hallazgos() {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'Alta':
-        return 'bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA]';
+        return 'bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]';
       case 'Media':
         return 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]';
       case 'Baja':
@@ -227,7 +227,7 @@ export function Hallazgos() {
         return {
           label: 'ALTA',
           icon: <IconBell className="w-3.5 h-3.5" aria-hidden="true" />,
-          className: 'bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA]'
+          className: 'bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]'
         };
       case 'Media':
         return {
@@ -286,7 +286,7 @@ export function Hallazgos() {
 
       <header className="flex items-center justify-between" style={{ marginBottom: 'var(--space-8)' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+          <h1 className="page-title">
             Síntesis de hallazgos y plan de mejora - {activeProject.nombre}
           </h1>
           <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
@@ -301,7 +301,7 @@ export function Hallazgos() {
             aria-label="Editar hallazgo"
           >
             <IconPencil className="w-4 h-4" />
-            Editar
+            <span className="hidden md:inline">Editar</span>
           </button>
         )}
       </header>

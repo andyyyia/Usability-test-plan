@@ -209,13 +209,13 @@ export function Observaciones() {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'Alta':
-        return 'bg-red-100 text-red-800';
+        return 'bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]';
       case 'Media':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]';
       case 'Baja':
-        return 'bg-green-100 text-green-800';
+        return 'bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0]';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-white text-gray-900 border border-gray-300';
     }
   };
 
@@ -254,7 +254,7 @@ export function Observaciones() {
 
       <header className="flex items-center justify-between" style={{ marginBottom: 'var(--space-8)' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+          <h1 className="page-title">
             Registro de observación - {activeProject.nombre}
           </h1>
           <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
@@ -265,9 +265,10 @@ export function Observaciones() {
           <button
             onClick={handleEdit}
             className="flex items-center gap-2 px-4 py-2 btn-editar"
+            aria-label="Editar observaciones"
           >
             <IconPencil size={16} className="w-4 h-4" />
-            Editar
+            <span className="hidden md:inline">Editar</span>
           </button>
         )}
       </header>

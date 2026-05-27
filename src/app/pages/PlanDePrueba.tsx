@@ -315,7 +315,7 @@ export function PlanDePrueba() {
 
       <header className="flex items-center justify-between" style={{ marginBottom: 'var(--space-8)' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+          <h1 className="page-title">
             Plan de prueba de usabilidad - {activeProject.nombre}
           </h1>
           <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
@@ -326,9 +326,10 @@ export function PlanDePrueba() {
           <button
             onClick={handleEdit}
             className="flex items-center gap-2 px-4 py-2 btn-editar"
+            aria-label="Editar plan de prueba"
           >
             <IconPencil size={16} className="w-4 h-4" />
-            Editar
+            <span className="hidden md:inline">Editar</span>
           </button>
         )}
       </header>
@@ -465,22 +466,22 @@ export function PlanDePrueba() {
                 <caption id="plan-tareas-caption" className="sr-only">Tabla de tareas, escenarios y métricas del plan de prueba</caption>
                 <thead>
                   <tr className="bg-gray-50">
-                    <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
+                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
                       ID
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                       Escenario / tarea
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                       Resultado esperado
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                       Métrica principal
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
                       Criterio de éxito
                     </th>
-                    <th className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-16">
+                    <th scope="col" className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-16">
                       Acción
                     </th>
                   </tr>
@@ -502,6 +503,7 @@ export function PlanDePrueba() {
                             !isEditing ? 'is-disabled' : ''
                           } ${taskErrors.some(te => te.index === index && te.field === 'scenario') ? 'is-error' : ''} ${task.scenario ? 'is-filled' : ''}`}
                           placeholder="Describe el escenario..."
+                          aria-label={`Escenario/tarea para ${task.id}`}
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
@@ -515,6 +517,7 @@ export function PlanDePrueba() {
                             !isEditing ? 'is-disabled' : ''
                           } ${taskErrors.some(te => te.index === index && te.field === 'expectedResult') ? 'is-error' : ''} ${task.expectedResult ? 'is-filled' : ''}`}
                           placeholder="Resultado esperado..."
+                          aria-label={`Resultado esperado para ${task.id}`}
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
@@ -528,6 +531,7 @@ export function PlanDePrueba() {
                             !isEditing ? 'is-disabled' : ''
                           } ${taskErrors.some(te => te.index === index && te.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
                           placeholder="Ej: Tiempo, éxito..."
+                          aria-label={`Métrica principal para ${task.id}`}
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
@@ -541,6 +545,7 @@ export function PlanDePrueba() {
                             !isEditing ? 'is-disabled' : ''
                           } ${taskErrors.some(te => te.index === index && te.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
                           placeholder="¿Cómo medir éxito?"
+                          aria-label={`Criterio de éxito para ${task.id}`}
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2 text-center">
@@ -549,6 +554,7 @@ export function PlanDePrueba() {
                             onClick={() => deleteTask(index)}
                             className="text-red-600 hover:text-red-800 transition-colors p-1"
                             title="Eliminar tarea"
+                            aria-label={`Eliminar tarea ${task.id}`}
                           >
                             <IconTrash size={16} className="w-4 h-4" />
                           </button>
@@ -626,6 +632,7 @@ export function PlanDePrueba() {
           <Card title="Notas del moderador">
             <textarea
               id="notas"
+              aria-label="Notas del moderador"
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Escribe aquí recordatorios, riesgos, sesgos a evitar o instrucciones para la sesión."

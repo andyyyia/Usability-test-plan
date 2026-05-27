@@ -194,7 +194,7 @@ export function TareasYGuion() {
 
       <header className="flex items-center justify-between" style={{ marginBottom: 'var(--space-8)' }}>
         <div>
-          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+          <h1 className="page-title">
             Tareas y Guion de moderación - {activeProject.nombre}
           </h1>
           <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
@@ -205,9 +205,10 @@ export function TareasYGuion() {
           <button
             onClick={handleEdit}
             className="flex items-center gap-2 px-4 py-2 btn-editar"
+            aria-label="Editar guion de moderación"
           >
             <IconPencil size={16} className="w-4 h-4" />
-            Editar
+            <span className="hidden md:inline">Editar</span>
           </button>
         )}
       </header>

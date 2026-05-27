@@ -3,7 +3,11 @@
 @import './tailwind.css';
 @import './theme.css';
 
-/* Global transitions */
+/* Focus Ring */
+*:focus-visible {
+  outline: 2px solid var(--color-primary) !important;
+  outline-offset: 2px !important;
+}
 * {
   transition: inherit;
 }
@@ -202,3 +206,76 @@ option.option-baja {
     animation: none !important;
   }
 }
+
+/* Responsive Sidebar Styles */
+.sidebar-container {
+  transition: transform 0.3s ease, width 0.3s ease, min-width 0.3s ease;
+}
+
+@media (max-width: 767px) {
+  .sidebar-container {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 50;
+    width: 260px !important;
+    min-width: 260px !important;
+    transform: translateX(-100%);
+  }
+  
+  .sidebar-container.is-mobile-open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Tablet Collapse */
+  .sidebar-container {
+    width: 68px !important;
+    min-width: 68px !important;
+    overflow-x: hidden;
+  }
+  
+  .sidebar-container:hover {
+    width: 260px !important;
+    min-width: 260px !important;
+    box-shadow: var(--shadow-lg);
+    z-index: 40;
+  }
+  
+  /* Hide text content when collapsed */
+  .sidebar-container:not(:hover) .sidebar-text {
+    display: none !important;
+  }
+  
+  .sidebar-container:not(:hover) .sidebar-project-details {
+    display: none !important;
+  }
+  
+  /* Adjust sidebar items padding when collapsed */
+  .sidebar-container:not(:hover) .p-6 {
+    padding: 1.25rem 1rem !important;
+  }
+  .sidebar-container:not(:hover) .p-4 {
+    padding: 1rem 0.75rem !important;
+  }
+}
+
+/* Page Module Header Title */
+.page-title {
+  font-family: var(--font-title);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-black);
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+  margin-top: 0;
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: var(--text-xl) !important;
+  }
+}
+
+

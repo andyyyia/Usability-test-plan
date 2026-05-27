@@ -184,7 +184,7 @@ export function Dashboard() {
       ]} />
 
       <header style={{ marginBottom: 'var(--space-8)' }}>
-        <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+        <h1 className="page-title">
           Dashboard - {activeProject.nombre}
         </h1>
         <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
@@ -195,7 +195,7 @@ export function Dashboard() {
       <Stepper steps={getSteps()} />
 
         {/* Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <MetricCard
             title="Tareas exitosas"
             value={metrics.exitoPercent}
