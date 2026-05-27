@@ -204,7 +204,7 @@ export function TareasYGuion() {
         {!isEditing && (
           <button
             onClick={handleEdit}
-            className="flex items-center gap-2 px-4 py-2 btn-editar"
+            className="btn-primary"
             aria-label="Editar guion de moderación"
           >
             <IconPencil size={16} className="w-4 h-4" />
@@ -314,7 +314,7 @@ export function TareasYGuion() {
                       {isEditing && (
                         <button
                           onClick={() => handleDeleteTask(index)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                          className="btn-danger"
                           aria-label={`Eliminar tarea ${task.id}`}
                         >
                           <IconTrash size={16} className="w-4 h-4" />
@@ -329,7 +329,7 @@ export function TareasYGuion() {
                     <td colSpan={5} className="border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700">
                       <button
                         onClick={handleAddTask}
-                        className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                        className="btn-outline-primary"
                       >
                         <IconPlus size={16} className="w-4 h-4" />
                         Agregar tarea
@@ -350,17 +350,17 @@ export function TareasYGuion() {
             </p>
 
             <ul className="space-y-3 list-disc list-inside">
-              <li className="text-sm text-gray-800">
-                <span className="font-semibold text-[#1E3A5F]">¿Qué fue lo más fácil del sistema?</span><br />
-                <span className="pl-5 text-gray-600">Para identificar los aciertos clave del diseño.</span>
+              <li className="text-sm text-secondary">
+                <span className="font-semibold text-[var(--color-primary)]">¿Qué fue lo más fácil del sistema?</span><br />
+                <span className="pl-5 text-muted">Para identificar los aciertos clave del diseño.</span>
               </li>
-              <li className="text-sm text-gray-800">
-                <span className="font-semibold text-[#1E3A5F]">¿Qué fue lo más confuso o frustrante?</span><br />
-                <span className="pl-5 text-gray-600">Para levantar los puntos de fricción principales.</span>
+              <li className="text-sm text-secondary">
+                <span className="font-semibold text-[var(--color-primary)]">¿Qué fue lo más confuso o frustrante?</span><br />
+                <span className="pl-5 text-muted">Para levantar los puntos de fricción principales.</span>
               </li>
-              <li className="text-sm text-gray-800">
-                <span className="font-semibold text-[#1E3A5F]">Si pudieras cambiar una sola cosa del diseño, ¿cuál sería?</span><br />
-                <span className="pl-5 text-gray-600">Ayuda a priorizar la próxima mejora desde la perspectiva del participante.</span>
+              <li className="text-sm text-secondary">
+                <span className="font-semibold text-[var(--color-primary)]">Si pudieras cambiar una sola cosa del diseño, ¿cuál sería?</span><br />
+                <span className="pl-5 text-muted">Ayuda a priorizar la próxima mejora desde la perspectiva del participante.</span>
               </li>
             </ul>
             <p className="text-sm text-gray-500 mt-4 italic border-t pt-4">
@@ -382,7 +382,7 @@ export function TareasYGuion() {
              <button
               onClick={handleSave}
               disabled={isSaving}
-              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+              className={`flex items-center gap-2 px-6 py-3 bg-[var(--color-sidebar)] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[var(--color-primary-hover)]'}`}
             >
               {isSaving ? (
                 <>

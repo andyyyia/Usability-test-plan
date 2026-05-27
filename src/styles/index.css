@@ -12,13 +12,136 @@
   transition: inherit;
 }
 body {
-  transition: background-color var(--transition-slow), color var(--transition-slow);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+
+.theme-toggle-button {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+  transition: box-shadow var(--transition-fast), background-color var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.theme-toggle-button:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.text-body {
+  color: var(--color-text) !important;
+}
+.text-secondary {
+  color: var(--color-text-secondary) !important;
+}
+.text-muted {
+  color: var(--color-text-muted) !important;
+}
+.bg-page {
+  background-color: var(--color-bg) !important;
+}
+.bg-card {
+  background-color: var(--color-bg-card) !important;
+}
+.bg-secondary {
+  background-color: var(--color-bg-secondary) !important;
+}
+.border-default {
+  border-color: var(--color-border) !important;
+}
+.border-strong {
+  border-color: var(--color-border-strong) !important;
+}
+.text-white {
+  color: var(--color-text-inverse) !important;
+}
+.bg-white {
+  background-color: var(--color-bg-card) !important;
+}
+.text-gray-900 {
+  color: var(--color-text) !important;
+}
+.text-gray-800,
+.text-gray-700 {
+  color: var(--color-text-secondary) !important;
+}
+.text-gray-600,
+.text-gray-500,
+.text-gray-400 {
+  color: var(--color-text-muted) !important;
+}
+.bg-gray-50,
+.bg-gray-100,
+.bg-gray-200 {
+  background-color: var(--color-bg-secondary) !important;
+}
+.border-gray-100,
+.border-gray-200,
+.border-gray-300 {
+  border-color: var(--color-border) !important;
+}
+.bg-blue-50,
+.bg-blue-100 {
+  background-color: var(--color-primary-light) !important;
+}
+.bg-blue-600,
+.text-blue-700,
+.text-blue-900 {
+  color: var(--color-primary) !important;
+  background-color: var(--color-primary) !important;
+}
+.hover\:bg-blue-700:hover {
+  background-color: var(--color-primary-hover) !important;
+}
+.bg-red-50,
+.bg-red-100 {
+  background-color: var(--color-error-light) !important;
+}
+.text-red-900,
+.text-red-700,
+.text-red-800 {
+  color: var(--color-error) !important;
+}
+.bg-green-100 {
+  background-color: var(--color-success-light) !important;
+}
+.text-green-800,
+.text-green-600,
+.bg-green-500 {
+  color: var(--color-success) !important;
+  background-color: var(--color-success) !important;
+}
+.bg-warning-light {
+  background-color: var(--color-warning-light) !important;
+}
+.text-warning {
+  color: var(--color-warning) !important;
+}
+.border-warning-light {
+  border-color: var(--color-warning-light) !important;
+}
+.text-info {
+  color: var(--color-info) !important;
+}
+.bg-info-light {
+  background-color: var(--color-info-light) !important;
+}
+.hover\:bg-gray-300:hover,
+.hover\:bg-gray-100:hover,
+.hover\:bg-gray-50:hover {
+  background-color: var(--color-bg-card) !important;
 }
 
 /* Primary "Editar" Button Styling */
 .btn-editar {
   background-color: var(--color-primary);
-  color: #ffffff;
+  color: var(--color-text-inverse);
   border-radius: var(--radius-md);
   transition: background-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
   cursor: pointer;
@@ -102,6 +225,24 @@ body {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
 }
 
+.form-input.is-disabled,
+.form-input:disabled,
+.form-input[disabled] {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-secondary);
+  opacity: 1;
+  cursor: not-allowed;
+  border-color: var(--color-border);
+  box-shadow: none;
+}
+
+.form-input.is-disabled::placeholder,
+.form-input:disabled::placeholder,
+.form-input[disabled]::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
 /* Severity Dropdown Options */
 option.option-alta {
   background-color: var(--color-error-light);
@@ -132,9 +273,122 @@ option.option-baja {
   transform: translateY(-2px);
 }
 
+.hallazgo-indicator-card {
+  border-radius: var(--radius-lg);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.hallazgo-indicator-icon {
+  transition: background-color var(--transition-fast), color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.hallazgo-indicator-card--alta {
+  background-color: #FEE2E2;
+  border-color: #FECACA;
+}
+
+.hallazgo-indicator-card--media {
+  background-color: #FEF3C7;
+  border-color: #FDE68A;
+}
+
+.hallazgo-indicator-card--baja {
+  /* Use success token so baja matches the visual language of other indicators */
+  background-color: var(--color-success-light);
+  border-color: var(--color-success-light);
+}
+
+.hallazgo-indicator-card--alta .hallazgo-indicator-icon {
+  background-color: #FECACA;
+  color: #B91C1C;
+}
+
+.hallazgo-indicator-card--media .hallazgo-indicator-icon {
+  background-color: #FDE68A;
+  color: #92400E;
+}
+
+.hallazgo-indicator-card--baja .hallazgo-indicator-icon {
+  background-color: var(--color-success-light);
+  color: var(--color-success);
+}
+
+body.dark .hallazgo-indicator-card {
+  background-color: #1F2937 !important;
+  border-color: #334155 !important;
+}
+
+body.dark .hallazgo-indicator-card--alta {
+  background-color: rgba(248, 113, 113, 0.18) !important;
+  border-color: rgba(239, 68, 68, 0.35) !important;
+}
+
+body.dark .hallazgo-indicator-card--media {
+  background-color: rgba(245, 158, 11, 0.18) !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
+}
+
+body.dark .hallazgo-indicator-card--baja {
+  /* Dark mode: subtle green tint using success token equivalent */
+  background-color: rgba(34, 197, 94, 0.12) !important;
+  border-color: rgba(34, 197, 94, 0.26) !important;
+}
+
+body.dark .hallazgo-indicator-card--alta .hallazgo-indicator-icon {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #FECACA !important;
+}
+
+body.dark .hallazgo-indicator-card--media .hallazgo-indicator-icon {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #F59E0B !important;
+}
+
+body.dark .hallazgo-indicator-card--baja .hallazgo-indicator-icon {
+  background-color: rgba(34, 197, 94, 0.17) !important;
+  color: #86EFAC !important;
+}
+
+body.dark .hallazgo-indicator-card h3,
+body.dark .hallazgo-indicator-card p,
+body.dark .hallazgo-indicator-card .text-4xl {
+  color: var(--color-text) !important;
+}
+
+/* Observation detail box (expandable) - use tokens and ensure readable contrast
+   in light and dark modes */
+.obs-detail {
+  border-left: 4px solid var(--color-primary);
+  background-color: rgba(45, 90, 158, 0.06);
+  color: var(--color-text);
+  padding: var(--space-4);
+}
+
+body.dark .obs-detail {
+  background-color: rgba(45, 90, 158, 0.10) !important;
+  border-left-color: var(--color-primary) !important;
+  color: var(--color-text) !important;
+}
+
+/* Edit mode banner used in Hallazgos: tokenized colors for both themes */
+.edit-mode-banner {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-primary);
+  background-color: var(--color-primary-light);
+  color: var(--color-primary);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+body.dark .edit-mode-banner {
+  background-color: rgba(45, 90, 158, 0.12) !important;
+  color: var(--color-primary) !important;
+  border-color: rgba(45, 90, 158, 0.28) !important;
+}
+
 /* Interactive Table Rows */
 .table-row-interactive {
-  background-color: #ffffff;
+  background-color: var(--color-bg-card);
   transition: background-color var(--transition-fast);
 }
 
@@ -144,27 +398,28 @@ option.option-baja {
 
 /* Severity Row Colors for Table */
 .row-severity-alta {
-  background-color: #FEF2F2;
+  background-color: rgba(239, 68, 68, 0.12);
   transition: background-color var(--transition-fast);
 }
 .row-severity-alta:hover {
-  background-color: #FEE2E2;
+  background-color: rgba(239, 68, 68, 0.18);
 }
 
 .row-severity-media {
-  background-color: #FFFBEB;
+  background-color: rgba(245, 158, 11, 0.12);
   transition: background-color var(--transition-fast);
 }
 .row-severity-media:hover {
-  background-color: #FEF3C7;
+  background-color: rgba(245, 158, 11, 0.18);
 }
 
 .row-severity-baja {
-  background-color: #F0FDF4;
+  /* keep rows neutral to avoid a full-width green stripe that hides values */
+  background-color: transparent;
   transition: background-color var(--transition-fast);
 }
 .row-severity-baja:hover {
-  background-color: #DCFCE7;
+  background-color: rgba(34, 197, 94, 0.06);
 }
 
 /* Table Consistency Styles */
@@ -277,5 +532,70 @@ option.option-baja {
     font-size: var(--text-xl) !important;
   }
 }
+
+/* Button utilities using tokens */
+.btn-primary {
+  background-color: var(--color-sidebar);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.btn-primary:hover { background-color: var(--color-primary-hover); box-shadow: var(--shadow-sm); }
+
+.btn-secondary {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.btn-secondary:hover { box-shadow: var(--shadow-sm); }
+
+.btn-danger {
+  background-color: var(--color-error);
+  color: var(--color-text-inverse);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.btn-danger:hover { filter: brightness(0.95); box-shadow: var(--shadow-sm); }
+
+.btn-outline-primary {
+  background: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-light);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+.btn-outline-primary:hover { background: var(--color-primary-light); box-shadow: var(--shadow-sm); }
+
+/* Badge utilities for observation status */
+.badge-success { background-color: var(--color-success-light); color: var(--color-success); padding: 0.25rem .5rem; border-radius: 9999px; }
+.badge-warning { background-color: var(--color-warning-light); color: var(--color-warning); padding: 0.25rem .5rem; border-radius: 9999px; }
+.badge-error { background-color: var(--color-error-light); color: var(--color-error); padding: 0.25rem .5rem; border-radius: 9999px; }
+
+/* Dashboard critical item */
+.critical-item { background-color: var(--color-error-light); color: var(--color-error); padding: .75rem; border-radius: var(--radius-md); }
+body.dark .critical-item { background-color: rgba(239,68,68,0.18) !important; color: var(--color-text) !important; }
+
+/* Dark mode adjustments for button palettes */
+body.dark .btn-secondary { background-color: var(--color-bg-secondary); color: var(--color-text); border-color: var(--color-border); }
+body.dark .btn-outline-primary { color: var(--color-primary); border-color: var(--color-primary-light); }
+body.dark .btn-primary { background-color: var(--color-sidebar); color: var(--color-text-inverse); }
+body.dark .btn-danger { background-color: var(--color-error); color: var(--color-text-inverse); }
+
 
 

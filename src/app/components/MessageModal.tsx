@@ -59,12 +59,12 @@ export function MessageModal({
           </div>
 
           <div className="px-6 py-5">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{message}</p>
+            <p className="text-sm text-secondary whitespace-pre-wrap">{message}</p>
             <div className="mt-5 flex justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-[#1E3A5F] text-white rounded-lg hover:bg-[#152d47] transition-colors"
+                className="px-4 py-2 bg-[var(--color-sidebar)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors"
               >
                 Cerrar
               </button>

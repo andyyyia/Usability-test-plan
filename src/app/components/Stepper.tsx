@@ -40,7 +40,7 @@ export function Stepper({ steps }: StepperProps) {
       <div className="min-w-[700px] max-w-5xl mx-auto px-6">
         <div className="flex items-start justify-between relative">
           {/* Background connecting line */}
-          <div className="absolute left-[5%] top-6 w-[90%] h-[2px] bg-gray-200 -z-10" />
+          <div className="absolute left-[5%] top-6 w-[90%] h-[2px] bg-[var(--color-border-strong)] -z-10" />
           
           {/* Active progress line calculation */}
           {(() => {
@@ -53,7 +53,7 @@ export function Stepper({ steps }: StepperProps) {
             
             return (
               <div 
-                className="absolute left-[5%] top-6 h-[2px] bg-[#1E3A5F] -z-10 transition-all duration-500 ease-in-out" 
+                className="absolute left-[5%] top-6 h-[2px] bg-[var(--color-primary)] -z-10 transition-all duration-500 ease-in-out" 
                 style={{ width: `${widthPercentage * 0.9}%` }}
               />
             );
@@ -72,7 +72,7 @@ export function Stepper({ steps }: StepperProps) {
                 {/* Completed tooltip */}
                 {isCompleted && (
                   <div 
-                    className="absolute bottom-[52px] invisible opacity-0 group-hover:visible group-hover:opacity-100 bg-gray-900 text-white text-xs rounded py-1.5 px-3 whitespace-nowrap z-50 pointer-events-none shadow-md"
+                    className="absolute bottom-[52px] invisible opacity-0 group-hover:visible group-hover:opacity-100 bg-[var(--color-text)] text-white text-xs rounded py-1.5 px-3 whitespace-nowrap z-50 pointer-events-none shadow-md"
                     style={{ 
                       left: '50%', 
                       transform: 'translateX(-50%)',
@@ -81,23 +81,27 @@ export function Stepper({ steps }: StepperProps) {
                   >
                     {step.label}
                     {/* Arrow */}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900" />
+                    <div
+                      className="absolute top-full left-1/2 -translate-x-1/2 -mt-1"
+                      style={{ borderColor: 'transparent transparent var(--color-text) transparent', borderStyle: 'solid', borderWidth: '0 0.4rem 0.4rem 0.4rem' }}
+                    />
                   </div>
                 )}
 
                 {isCompleted ? (
                   <div 
-                    className="bg-white rounded-full flex items-center justify-center relative z-10 w-12 h-12 transition-all"
+                    className="bg-[var(--color-bg-card)] rounded-full flex items-center justify-center relative z-10 w-12 h-12 transition-all"
                     style={{ transition: 'all var(--transition-fast)' }}
                   >
                     <IconCircleCheck size={48} color="var(--color-success)" stroke={1.5} />
                   </div>
                 ) : isCurrent ? (
                   <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-[3px] transition-all bg-white shadow-lg ring-4 ring-blue-50 relative z-10"
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-[3px] transition-all bg-[var(--color-bg-card)] shadow-lg ring-4 relative z-10"
                     style={{ 
                       borderColor: 'var(--color-primary)', 
                       color: 'var(--color-primary)',
+                      boxShadow: '0 10px 30px rgba(45, 90, 158, 0.12)',
                       transition: 'all var(--transition-fast)'
                     }}
                   >
@@ -105,7 +109,7 @@ export function Stepper({ steps }: StepperProps) {
                   </div>
                 ) : (
                   <div 
-                    className="bg-white rounded-full flex items-center justify-center relative z-10 w-12 h-12 transition-all"
+                    className="bg-[var(--color-bg-card)] rounded-full flex items-center justify-center relative z-10 w-12 h-12 transition-all"
                     style={{ transition: 'all var(--transition-fast)' }}
                   >
                     <IconCircle size={48} color="var(--color-text-muted)" stroke={1.5} />
@@ -116,9 +120,9 @@ export function Stepper({ steps }: StepperProps) {
                 <div className="mt-4 text-center">
                   <p 
                     className={`text-sm font-bold transition-colors ${
-                      isCurrent ? 'text-[#1E3A5F]' : 
-                      isCompleted ? 'text-gray-800' : 
-                      'text-gray-500'
+                      isCurrent ? 'text-[var(--color-primary)]' : 
+                      isCompleted ? 'text-[var(--color-text)]' : 
+                      'text-muted'
                     }`}
                     style={{ transition: 'color var(--transition-fast)' }}
                   >
@@ -127,17 +131,17 @@ export function Stepper({ steps }: StepperProps) {
                   <div className="flex items-center justify-center gap-1.5 mt-1.5">
                     <span 
                       className={`w-2 h-2 rounded-full transition-colors ${
-                        isCompleted ? 'bg-green-500' : 
-                        isCurrent ? 'bg-blue-500 animate-pulse' : 
-                        'bg-gray-300'
+                        isCompleted ? 'bg-[var(--color-success)]' : 
+                        isCurrent ? 'bg-[var(--color-primary)] animate-pulse' : 
+                        'bg-[var(--color-border)]'
                       }`}
                       style={{ transition: 'background-color var(--transition-fast)' }}
                     />
                     <span 
                       className={`text-xs font-medium transition-colors ${
-                        isCompleted ? 'text-green-600' : 
-                        isCurrent ? 'text-blue-600' : 
-                        'text-gray-400'
+                        isCompleted ? 'text-[var(--color-success)]' : 
+                        isCurrent ? 'text-[var(--color-primary)]' : 
+                        'text-muted'
                       }`}
                       style={{ transition: 'color var(--transition-fast)' }}
                     >

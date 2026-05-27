@@ -51,6 +51,7 @@
   --color-text: #0F172A;
   --color-text-secondary: #475569;
   --color-text-muted: #94A3B8;
+  --color-text-inverse: #ffffff;
   --color-border: #E2E8F0;
   --color-border-strong: #CBD5E1;
 
@@ -90,6 +91,20 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
+}
+
+body.dark {
+  --color-bg: #0B1120;
+  --color-bg-card: #1E293B;
+  --color-bg-secondary: #111827;
+  --color-border: #1E293B;
+  --color-border-strong: #334155;
+  --color-text: #F1F5F9;
+  --color-text-secondary: #CBD5E1;
+  --color-text-muted: #94A3B8;
+  --color-primary-light: rgba(45, 90, 158, 0.18);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 body,

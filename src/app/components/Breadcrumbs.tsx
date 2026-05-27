@@ -21,7 +21,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
         <li className="flex items-center">
           <NavLink 
             to="/" 
-            className="transition-colors p-1.5 rounded-md hover:bg-gray-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            className="transition-colors p-1.5 rounded-md hover:bg-[var(--color-bg-secondary)] flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             style={{ color: 'var(--color-text-muted)' }}
           >
             <IconHome size={16} />
@@ -48,7 +48,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
                     color: isLast ? 'var(--color-primary)' : 'var(--color-text-muted)',
                     fontWeight: isLast ? 'var(--weight-bold)' : 'normal',
                     backgroundColor: isLast ? 'var(--color-primary-light)' : 'transparent',
-                    border: isLast ? '1px solid rgba(45, 90, 158, 0.15)' : 'none'
+                    border: isLast ? '1px solid var(--color-border-strong)' : 'none'
                   }}
                   aria-current={isLast ? 'page' : undefined}
                 >

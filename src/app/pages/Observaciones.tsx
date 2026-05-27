@@ -209,13 +209,13 @@ export function Observaciones() {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'Alta':
-        return 'bg-[#FEE2E2] text-[#991B1B] border border-[#FECACA]';
+        return 'bg-[var(--color-error-light)] text-[var(--color-error)] border border-[var(--color-error-light)]';
       case 'Media':
-        return 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]';
+        return 'bg-[var(--color-warning-light)] text-[var(--color-warning)] border border-[var(--color-warning-light)]';
       case 'Baja':
-        return 'bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0]';
+        return 'bg-[var(--color-success-light)] text-[var(--color-success)] border border-[var(--color-success-light)]';
       default:
-        return 'bg-white text-gray-900 border border-gray-300';
+        return 'bg-card text-body border border-default';
     }
   };
 
@@ -264,7 +264,7 @@ export function Observaciones() {
         {!isEditing && (
           <button
             onClick={handleEdit}
-            className="flex items-center gap-2 px-4 py-2 btn-editar"
+            className="btn-primary"
             aria-label="Editar observaciones"
           >
             <IconPencil size={16} className="w-4 h-4" />
@@ -506,24 +506,24 @@ export function Observaciones() {
                           transition: 'max-height 250ms ease-in-out, opacity 250ms ease-in-out'
                         }}
                       >
-                        <div className="p-4 border-l-4 border-[#2d5a9e] bg-blue-50/5 flex flex-col gap-2 text-sm text-gray-700">
-                          <p className="font-semibold text-[#1e3a5f]">Detalles de la observación del Participante {index + 1}:</p>
+                        <div className="obs-detail">
+                          <p className="font-semibold text-[var(--color-primary)]">Detalles de la observación del Participante {index + 1}:</p>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                            <p><span className="font-semibold text-gray-900">Perfil:</span> {obs.perfil || 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-gray-900">Tarea:</span> {obs.tarea || 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-gray-900">Éxito:</span> {obs.exito || 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-gray-900">Tiempo:</span> {obs.tiempo ? `${obs.tiempo} seg` : 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-gray-900">Errores:</span> {obs.errores || 0}</p>
-                            <p><span className="font-semibold text-gray-900">Severidad:</span> {obs.severidad || 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-body">Perfil:</span> {obs.perfil || 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-body">Tarea:</span> {obs.tarea || 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-body">Éxito:</span> {obs.exito || 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-body">Tiempo:</span> {obs.tiempo ? `${obs.tiempo} seg` : 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-body">Errores:</span> {obs.errores || 0}</p>
+                            <p><span className="font-semibold text-body">Severidad:</span> {obs.severidad || 'Sin registrar'}</p>
                           </div>
                           {obs.comentarios && (
-                            <p className="mt-1"><span className="font-semibold text-gray-900">Comentarios clave:</span> {obs.comentarios}</p>
+                            <p className="mt-1"><span className="font-semibold text-body">Comentarios clave:</span> {obs.comentarios}</p>
                           )}
                           {obs.problema && (
-                            <p className="mt-1"><span className="font-semibold text-gray-900">Problema detectado:</span> {obs.problema}</p>
+                            <p className="mt-1"><span className="font-semibold text-body">Problema detectado:</span> {obs.problema}</p>
                           )}
                           {obs.mejora && (
-                            <p className="mt-1"><span className="font-semibold text-gray-900">Mejora propuesta:</span> {obs.mejora}</p>
+                            <p className="mt-1"><span className="font-semibold text-body">Mejora propuesta:</span> {obs.mejora}</p>
                           )}
                         </div>
                       </div>
@@ -567,7 +567,7 @@ export function Observaciones() {
           {isEditing && (
             <button
               onClick={addObservation}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="btn-outline-primary"
             >
               <IconPlus size={16} className="w-4 h-4" />
               Añadir registro
@@ -581,7 +581,7 @@ export function Observaciones() {
           <button
             onClick={handleCancel}
             disabled={isSaving}
-            className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
+            className={`flex items-center gap-2 px-6 py-3 bg-secondary text-secondary rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-white'}`}
           >
             <IconX size={16} className="w-4 h-4" />
             Cancelar
@@ -589,7 +589,7 @@ export function Observaciones() {
           <button
             onClick={handleSave}
             disabled={isSaving}
-            className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+            className={`flex items-center gap-2 px-6 py-3 bg-[var(--color-sidebar)] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[var(--color-primary-hover)]'}`}
           >
             {isSaving ? (
               <>

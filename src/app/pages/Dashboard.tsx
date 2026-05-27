@@ -54,8 +54,8 @@ function MetricCard({ title, value, icon: Icon, color }: { title: string; value:
         <Icon size={20} className="text-white" />
       </div>
       <div>
-        <p className="text-sm text-gray-600">{title}</p>
-        <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>
+        <p className="text-sm text-secondary">{title}</p>
+        <p className="text-2xl font-bold text-body" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>
           {isNumeric ? <CountUp end={value as number} /> : value}
         </p>
       </div>
@@ -145,9 +145,9 @@ export function Dashboard() {
       });
 
       setSeverityData([
-        { name: 'Alta', value: sevCounts.Alta, color: '#EF4444' },
-        { name: 'Media', value: sevCounts.Media, color: '#F59E0B' },
-        { name: 'Baja', value: sevCounts.Baja, color: '#10B981' },
+        { name: 'Alta', value: sevCounts.Alta, color: 'var(--color-error)' },
+        { name: 'Media', value: sevCounts.Media, color: 'var(--color-warning)' },
+        { name: 'Baja', value: sevCounts.Baja, color: 'var(--color-success)' },
       ]);
 
       setMetrics({
@@ -235,13 +235,13 @@ export function Dashboard() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="errores" fill="#1E3A5F" name={"Errores detectados"} />
+                    <Bar dataKey="errores" fill="var(--color-primary)" name={"Errores detectados"} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center p-6 text-gray-500 min-h-[300px]">
-                <IconAlertTriangle size={48} className="text-gray-300 mb-3" />
+              <div className="flex flex-col items-center justify-center p-6 text-muted min-h-[300px]">
+                <IconAlertTriangle size={48} className="text-muted mb-3" />
                 <p>No hay observaciones registradas aún.</p>
               </div>
             )}
@@ -250,8 +250,8 @@ export function Dashboard() {
           <Card title="Distribución de severidad">
             <span className="sr-only">Gráfico circular que muestra la distribución de hallazgos por nivel de severidad: Alta, Media y Baja.</span>
             {severityData.every(d => d.value === 0) ? (
-              <div className="flex flex-col items-center justify-center p-6 text-gray-500 min-h-[300px]">
-                <IconAlertTriangle size={48} className="text-gray-300 mb-3" />
+              <div className="flex flex-col items-center justify-center p-6 text-muted min-h-[300px]">
+                <IconAlertTriangle size={48} className="text-muted mb-3" />
                 <p>No hay hallazgos registrados aún.</p>
               </div>
             ) : (
@@ -267,7 +267,7 @@ export function Dashboard() {
                         value > 0 ? `${name}: ${(percent * 100).toFixed(0)}%` : ''
                       }
                       outerRadius={100}
-                      fill="#8884d8"
+                      fill="var(--color-primary)"
                       dataKey="value"
                     >
                       {severityData.map((entry, index) => (
@@ -307,17 +307,9 @@ export function Dashboard() {
                         <td className="py-3 px-3 text-sm">{obs.participante}</td>
                         <td className="py-3 px-3 text-sm">{obs.tarea}</td>
                         <td className="py-3 px-3 text-sm">
-                          <span
-                            className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                              obs.exito === 'No'
-                                ? 'bg-red-100 text-red-800'
-                                : obs.exito === 'Con ayuda'
-                                ? 'bg-orange-100 text-orange-800'
-                                : 'bg-green-100 text-green-800'
-                            }`}
-                          >
-                            {obs.exito || 'N/A'}
-                          </span>
+                          <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                            obs.exito === 'No' ? 'badge-error' : obs.exito === 'Con ayuda' ? 'badge-warning' : 'badge-success'
+                          }`}>{obs.exito || 'N/A'}</span>
                         </td>
                       </tr>
                     ))}
@@ -330,11 +322,11 @@ export function Dashboard() {
           <Card title="Problemas críticos detectados">
             <div className="space-y-3">
                {criticalProblems.map((problem, index) => (
-                <div key={index} className="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
+                <div key={index} className="flex items-start gap-3 p-3 critical-item">
                   <IconAlertTriangle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{problem.problema}</p>
-                    <p className="text-xs text-gray-600 mt-1">Frecuencia: {problem.frecuencia}</p>
+                    <p className="text-sm font-medium">{problem.problema}</p>
+                    <p className="text-xs mt-1">Frecuencia: {problem.frecuencia}</p>
                   </div>
                 </div>
               ))}
