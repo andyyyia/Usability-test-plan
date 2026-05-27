@@ -16,7 +16,17 @@ interface StepperProps {
 
 export function Stepper({ steps }: StepperProps) {
   return (
-    <div className="w-full py-8 mb-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+    <div 
+      className="w-full overflow-x-auto" 
+      style={{
+        backgroundColor: 'var(--color-bg-card)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: 'var(--space-6)',
+        boxShadow: 'var(--shadow-sm)',
+        marginBottom: 'var(--space-8)'
+      }}
+    >
       <div className="min-w-[700px] max-w-5xl mx-auto px-6">
         <div className="flex items-start justify-between relative">
           {/* Background connecting line */}

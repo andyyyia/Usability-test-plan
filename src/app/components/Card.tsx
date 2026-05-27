@@ -5,8 +5,28 @@ interface CardProps {
 
 export function Card({ title, children }: CardProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-lg)', fontWeight: 'var(--weight-bold)' }}>{title}</h2>
+    <div 
+      style={{
+        backgroundColor: 'var(--color-bg-card)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: 'var(--space-8)',
+        boxShadow: 'var(--shadow-sm)',
+        marginBottom: 'var(--space-6)'
+      }}
+    >
+      <h2 
+        style={{
+          fontFamily: 'var(--font-title)',
+          fontSize: 'var(--text-lg)',
+          fontWeight: 'var(--weight-bold)',
+          color: 'var(--color-text)',
+          marginBottom: 'var(--space-6)',
+          marginTop: 0
+        }}
+      >
+        {title}
+      </h2>
       <div>{children}</div>
     </div>
   );

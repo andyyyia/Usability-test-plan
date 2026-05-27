@@ -113,7 +113,7 @@ export function Sidebar() {
   return (
     <aside
       aria-label="Menú principal"
-      className="w-full sm:w-64 bg-[#1E3A5F] shadow-lg h-auto sm:h-screen sm:sticky sm:top-0 flex flex-col overflow-y-auto"
+      className="w-full sm:w-[260px] sm:min-w-[260px] bg-[#1E3A5F] shadow-lg h-auto sm:h-screen sm:sticky sm:top-0 flex flex-col overflow-y-auto"
     >
       <div className="p-6 bg-[#1E3A5F] border-b border-blue-900/50">
         <h2 className="text-white font-bold text-lg" style={{ fontFamily: 'var(--font-title)', fontWeight: 'var(--weight-black)' }}>UX Testing</h2>

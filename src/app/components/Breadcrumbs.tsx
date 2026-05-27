@@ -12,12 +12,17 @@ interface BreadcrumbsProps {
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
   return (
-    <nav aria-label="Breadcrumb" className="mb-6 flex items-center text-sm font-medium">
+    <nav 
+      aria-label="Breadcrumb" 
+      className="flex items-center font-medium" 
+      style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginBottom: 'var(--space-6)' }}
+    >
       <ol className="flex items-center flex-wrap gap-1 md:gap-2">
         <li className="flex items-center">
           <NavLink 
             to="/" 
-            className="text-gray-500 hover:text-[#1E3A5F] transition-colors p-1.5 rounded-md hover:bg-gray-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
+            className="transition-colors p-1.5 rounded-md hover:bg-gray-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            style={{ color: 'var(--color-text-muted)' }}
           >
             <IconHome size={16} />
             <span className="sr-only">Home</span>
@@ -27,19 +32,24 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
           const isLast = index === items.length - 1;
           return (
             <li key={index} className="flex items-center">
-              <IconChevronRight size={16} className="text-gray-400 mx-1 flex-shrink-0" />
+              <IconChevronRight size={16} className="mx-1 flex-shrink-0" style={{ color: 'var(--color-text-muted)' }} />
               {item.to && !isLast ? (
                 <NavLink 
                   to={item.to} 
-                  className="text-gray-600 hover:text-[#1E3A5F] transition-colors hover:underline focus:outline-none focus:ring-2 focus:ring-[#1E3A5F] rounded-sm px-1"
+                  className="transition-colors hover:underline focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] rounded-sm px-1"
+                  style={{ color: 'var(--color-text-muted)' }}
                 >
                   {item.label}
                 </NavLink>
               ) : (
                 <span 
-                  className={`px-2 py-1 rounded-md text-sm ${
-                    isLast ? 'text-[#1E3A5F] bg-blue-50/80 font-bold border border-blue-100/50 shadow-sm' : 'text-gray-700'
-                  }`}
+                  className="px-2 py-1 rounded-md"
+                  style={{
+                    color: isLast ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                    fontWeight: isLast ? 'var(--weight-bold)' : 'normal',
+                    backgroundColor: isLast ? 'var(--color-primary-light)' : 'transparent',
+                    border: isLast ? '1px solid rgba(45, 90, 158, 0.15)' : 'none'
+                  }}
                   aria-current={isLast ? 'page' : undefined}
                 >
                   {item.label}

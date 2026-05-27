@@ -131,20 +131,23 @@ export function Dashboard() {
   }
 
   return (
-    <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
-      <div className="max-w-[1100px] mx-auto">
-        <Breadcrumbs items={[
-          { label: 'Proyectos' },
-          { label: activeProject.nombre },
-          { label: 'Dashboard' }
-        ]} />
+    <div className={isLoading ? 'opacity-50' : ''}>
+      <Breadcrumbs items={[
+        { label: 'Proyectos' },
+        { label: activeProject.nombre },
+        { label: 'Dashboard' }
+      ]} />
 
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>Dashboard - {activeProject.nombre}</h1>
-          <p className="text-gray-700 mt-1" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)' }}>Resumen general y reporte final de las pruebas de usabilidad</p>
-        </div>
+      <header style={{ marginBottom: 'var(--space-8)' }}>
+        <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+          Dashboard - {activeProject.nombre}
+        </h1>
+        <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
+          Resumen general y reporte final de las pruebas de usabilidad
+        </p>
+      </header>
 
-        <Stepper steps={getSteps()} />
+      <Stepper steps={getSteps()} />
 
         {/* Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -296,7 +299,6 @@ export function Dashboard() {
             </div>
           </Card>
         </div>
-      </div>
     </div>
   );
 }

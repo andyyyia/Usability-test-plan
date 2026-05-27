@@ -300,33 +300,34 @@ export function PlanDePrueba() {
   }
 
   return (
-    <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
-      <div className="max-w-[1100px] mx-auto">
-        <Breadcrumbs items={[
-          { label: 'Proyectos' },
-          { label: activeProject.nombre },
-          { label: 'Plan de prueba' }
-        ]} />
+    <div className={isLoading ? 'opacity-50' : ''}>
+      <Breadcrumbs items={[
+        { label: 'Proyectos' },
+        { label: activeProject.nombre },
+        { label: 'Plan de prueba' }
+      ]} />
 
-        <header className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>Plan de prueba de usabilidad - {activeProject.nombre}</h1>
-            <p className="text-gray-600 mt-1" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)' }}>Define el contexto y parámetros de la prueba</p>
-          </div>
-          <div className="flex gap-3">
-            {!isEditing && (
-              <button
-                onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 btn-editar"
-              >
-                <IconPencil size={16} className="w-4 h-4" />
-                Editar
-              </button>
-            )}
-          </div>
-        </header>
+      <header className="flex items-center justify-between" style={{ marginBottom: 'var(--space-8)' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+            Plan de prueba de usabilidad - {activeProject.nombre}
+          </h1>
+          <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
+            Define el contexto y parámetros de la prueba
+          </p>
+        </div>
+        {!isEditing && (
+          <button
+            onClick={handleEdit}
+            className="flex items-center gap-2 px-4 py-2 btn-editar"
+          >
+            <IconPencil size={16} className="w-4 h-4" />
+            Editar
+          </button>
+        )}
+      </header>
 
-        <Stepper steps={getSteps()} />
+      <Stepper steps={getSteps()} />
 
         <div className="space-y-6">
           <Card title="Contexto general">
@@ -650,7 +651,6 @@ export function PlanDePrueba() {
             </button>
           </div>
         )}
-      </div>
 
       <ConfirmModal
         open={confirmDeleteTask.open}

@@ -271,306 +271,306 @@ export function Hallazgos() {
   }
 
   return (
-    <div className={`p-8 ${isLoading ? 'opacity-50' : ''}`}>
-      <div className="max-w-[1100px] mx-auto">
-        <Breadcrumbs items={[
-          { label: 'Proyectos' },
-          { label: activeProject.nombre },
-          { label: 'Hallazgos' }
-        ]} />
+    <div className={isLoading ? 'opacity-50' : ''}>
+      <Breadcrumbs items={[
+        { label: 'Proyectos' },
+        { label: activeProject.nombre },
+        { label: 'Hallazgos' }
+      ]} />
 
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>Síntesis de hallazgos y plan de mejora - {activeProject.nombre}</h1>
-            <p className="mt-1 text-gray-800" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)' }}>Documenta problemas encontrados y sus recomendaciones</p>
-          </div>
-          <div className="flex gap-3">
-            {!isEditing && (
-              <button
-                onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 btn-editar"
-                title="Editar hallazgo"
-                aria-label="Editar hallazgo"
-              >
-                <IconPencil className="w-4 h-4" />
-                Editar
-              </button>
-            )}
-          </div>
+      <header className="flex items-center justify-between" style={{ marginBottom: 'var(--space-8)' }}>
+        <div>
+          <h1 style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)', color: 'var(--color-text)', marginBottom: 'var(--space-1)', marginTop: 0 }}>
+            Síntesis de hallazgos y plan de mejora - {activeProject.nombre}
+          </h1>
+          <p style={{ fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)', margin: 0 }}>
+            Documenta problemas encontrados y sus recomendaciones
+          </p>
         </div>
-
-        <Stepper steps={getSteps()} />
-
-        {isEditing && (
-          <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900" role="status" aria-live="polite">
-            Modo de edicion activado
-          </div>
+        {!isEditing && (
+          <button
+            onClick={handleEdit}
+            className="flex items-center gap-2 px-4 py-2 btn-editar"
+            title="Editar hallazgo"
+            aria-label="Editar hallazgo"
+          >
+            <IconPencil className="w-4 h-4" />
+            Editar
+          </button>
         )}
+      </header>
 
-        <Card title="Hallazgos y recomendaciones">
-          <div className="overflow-x-auto pb-4">
-            <table className="w-full border-collapse" aria-describedby="hallazgos-caption">
-              <caption id="hallazgos-caption" className="sr-only">Tabla de hallazgos y recomendaciones</caption>
-              <thead>
-                <tr className="bg-gray-50">
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[200px]">
-                    Problema
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
-                    Evidencia observada
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[100px]">
-                    Frecuencia
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[120px]">
-                    Severidad
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
-                    Recomendación
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[120px]">
-                    Prioridad
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-[130px]">
-                    Estado
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-16">
-                    Acción
-                  </th>
+      <Stepper steps={getSteps()} />
+
+      {isEditing && (
+        <div className="mb-4 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-900" role="status" aria-live="polite">
+          Modo de edicion activado
+        </div>
+      )}
+
+      <Card title="Hallazgos y recomendaciones">
+        <div className="design-table-container overflow-x-auto pb-4">
+          <table className="design-table" aria-describedby="hallazgos-caption">
+            <caption id="hallazgos-caption" className="sr-only">Tabla de hallazgos y recomendaciones</caption>
+            <thead>
+              <tr>
+                <th scope="col" className="w-[200px]">
+                  Problema
+                </th>
+                <th scope="col">
+                  Evidencia observada
+                </th>
+                <th scope="col" className="w-[100px]">
+                  Frecuencia
+                </th>
+                <th scope="col" className="w-[120px]">
+                  Severidad
+                </th>
+                <th scope="col">
+                  Recomendación
+                </th>
+                <th scope="col" className="w-[120px]">
+                  Prioridad
+                </th>
+                <th scope="col" className="w-[130px]">
+                  Estado
+                </th>
+                <th scope="col" className="text-center w-16">
+                  Acción
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+               {findings.map((finding, index) => (
+                <tr key={index} className={getSeverityRowColor(finding.severidad)}>
+                  <td>
+                    <textarea
+                      id={`fnd-${index}-problema`}
+                      value={finding.problema}
+                      onChange={(e) => handleChange(index, 'problema', e.target.value)}
+                      disabled={!isEditing}
+                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${finding.problema ? 'is-filled' : ''}`}
+                      placeholder="Describe el problema..."
+                      rows={2}
+                      aria-label={`Problema hallazgo ${index + 1}`}
+                    />
+                    {isEditing && isInsufficientInfo(finding.problema) && (
+                      <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
+                    )}
+                  </td>
+                  <td>
+                    <textarea
+                      id={`fnd-${index}-evidencia`}
+                      value={finding.evidencia}
+                      onChange={(e) => handleChange(index, 'evidencia', e.target.value)}
+                      disabled={!isEditing}
+                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'evidencia') ? 'is-error' : ''} ${finding.evidencia ? 'is-filled' : ''}`}
+                      rows={2}
+                      placeholder="Qué se observó..."
+                      aria-label={`Evidencia hallazgo ${index + 1}`}
+                    />
+                  </td>
+                  <td>
+                    <input
+                      id={`fnd-${index}-frecuencia`}
+                      type="text"
+                      value={finding.frecuencia}
+                      onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
+                      disabled={!isEditing}
+                      className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'frecuencia') ? 'is-error' : ''} ${finding.frecuencia ? 'is-filled' : ''}`}
+                      placeholder="4/5"
+                      aria-label={`Frecuencia hallazgo ${index + 1}`}
+                    />
+                  </td>
+                  <td>
+                    {isEditing ? (
+                      <select
+                        id={`fnd-${index}-severidad`}
+                        value={finding.severidad}
+                        onChange={(e) => handleChange(index, 'severidad', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${finding.severidad ? 'is-filled' : ''}`}
+                        aria-label={`Severidad hallazgo ${index + 1}`}
+                      >
+                        <option value="">Seleccionar...</option>
+                        <option value="Alta" className="option-alta">Alta</option>
+                        <option value="Media" className="option-media">Media</option>
+                        <option value="Baja" className="option-baja">Baja</option>
+                      </select>
+                    ) : (
+                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${getSeverityBadgeContent(finding.severidad).className}`}>
+                        {getSeverityBadgeContent(finding.severidad).icon}
+                        {getSeverityBadgeContent(finding.severidad).label}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <textarea
+                      id={`fnd-${index}-recomendacion`}
+                      value={finding.recomendacion}
+                      onChange={(e) => handleChange(index, 'recomendacion', e.target.value)}
+                      disabled={!isEditing}
+                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'recomendacion') ? 'is-error' : ''} ${finding.recomendacion ? 'is-filled' : ''}`}
+                      rows={2}
+                      placeholder="Solución propuesta..."
+                      aria-label={`Recomendación hallazgo ${index + 1}`}
+                    />
+                    {isEditing && isInsufficientInfo(finding.recomendacion) && (
+                      <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
+                    )}
+                  </td>
+                  <td>
+                    <select
+                      id={`fnd-${index}-prioridad`}
+                      value={finding.prioridad}
+                      onChange={(e) => handleChange(index, 'prioridad', e.target.value)}
+                      disabled={!isEditing}
+                      className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getPriorityColor(finding.prioridad)} ${errors.some(e => e.index === index && e.field === 'prioridad') ? 'is-error' : ''} ${finding.prioridad ? 'is-filled' : ''}`}
+                      aria-label={`Prioridad hallazgo ${index + 1}`}
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Alta">Alta</option>
+                      <option value="Media">Media</option>
+                      <option value="Baja">Baja</option>
+                    </select>
+                  </td>
+                  <td>
+                    <select
+                      id={`fnd-${index}-estado`}
+                      value={finding.estado}
+                      onChange={(e) => handleChange(index, 'estado', e.target.value)}
+                      disabled={!isEditing}
+                      className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getStatusColor(finding.estado)} ${errors.some(e => e.index === index && e.field === 'estado') ? 'is-error' : ''} ${finding.estado ? 'is-filled' : ''}`}
+                      aria-label={`Estado hallazgo ${index + 1}`}
+                    >
+                      <option value="">Seleccionar...</option>
+                      <option value="Pendiente">Pendiente</option>
+                      <option value="En progreso">En progreso</option>
+                      <option value="Resuelto">Resuelto</option>
+                    </select>
+                  </td>
+                  <td>
+                    {isEditing && (
+                      <button
+                        onClick={() => removeFinding(index)}
+                        className="inline-flex items-center justify-center rounded-md border border-red-300 p-2 text-red-700 hover:bg-red-50 hover:border-red-400 transition-colors"
+                        title={`Eliminar hallazgo ${index + 1}`}
+                        aria-label={`Eliminar hallazgo ${index + 1}`}
+                      >
+                        <IconTrash size={16} className="w-4 h-4" />
+                      </button>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                 {findings.map((finding, index) => (
-                  <tr key={index} className={getSeverityRowColor(finding.severidad)}>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <textarea
-                        id={`fnd-${index}-problema`}
-                        value={finding.problema}
-                        onChange={(e) => handleChange(index, 'problema', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${finding.problema ? 'is-filled' : ''}`}
-                        placeholder="Describe el problema..."
-                        rows={2}
-                        aria-label={`Problema hallazgo ${index + 1}`}
-                      />
-                      {isEditing && isInsufficientInfo(finding.problema) && (
-                        <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <textarea
-                        id={`fnd-${index}-evidencia`}
-                        value={finding.evidencia}
-                        onChange={(e) => handleChange(index, 'evidencia', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'evidencia') ? 'is-error' : ''} ${finding.evidencia ? 'is-filled' : ''}`}
-                        rows={2}
-                        placeholder="Qué se observó..."
-                        aria-label={`Evidencia hallazgo ${index + 1}`}
-                      />
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <input
-                        id={`fnd-${index}-frecuencia`}
-                        type="text"
-                        value={finding.frecuencia}
-                        onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'frecuencia') ? 'is-error' : ''} ${finding.frecuencia ? 'is-filled' : ''}`}
-                        placeholder="4/5"
-                        aria-label={`Frecuencia hallazgo ${index + 1}`}
-                      />
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      {isEditing ? (
-                        <select
-                          id={`fnd-${index}-severidad`}
-                          value={finding.severidad}
-                          onChange={(e) => handleChange(index, 'severidad', e.target.value)}
-                          disabled={!isEditing}
-                          className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${finding.severidad ? 'is-filled' : ''}`}
-                          aria-label={`Severidad hallazgo ${index + 1}`}
-                        >
-                          <option value="">Seleccionar...</option>
-                          <option value="Alta" className="option-alta">Alta</option>
-                          <option value="Media" className="option-media">Media</option>
-                          <option value="Baja" className="option-baja">Baja</option>
-                        </select>
-                      ) : (
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${getSeverityBadgeContent(finding.severidad).className}`}>
-                          {getSeverityBadgeContent(finding.severidad).icon}
-                          {getSeverityBadgeContent(finding.severidad).label}
-                        </span>
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <textarea
-                        id={`fnd-${index}-recomendacion`}
-                        value={finding.recomendacion}
-                        onChange={(e) => handleChange(index, 'recomendacion', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'recomendacion') ? 'is-error' : ''} ${finding.recomendacion ? 'is-filled' : ''}`}
-                        rows={2}
-                        placeholder="Solución propuesta..."
-                        aria-label={`Recomendación hallazgo ${index + 1}`}
-                      />
-                      {isEditing && isInsufficientInfo(finding.recomendacion) && (
-                        <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
-                      )}
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <select
-                        id={`fnd-${index}-prioridad`}
-                        value={finding.prioridad}
-                        onChange={(e) => handleChange(index, 'prioridad', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getPriorityColor(finding.prioridad)} ${errors.some(e => e.index === index && e.field === 'prioridad') ? 'is-error' : ''} ${finding.prioridad ? 'is-filled' : ''}`}
-                        aria-label={`Prioridad hallazgo ${index + 1}`}
-                      >
-                        <option value="">Seleccionar...</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Media">Media</option>
-                        <option value="Baja">Baja</option>
-                      </select>
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      <select
-                        id={`fnd-${index}-estado`}
-                        value={finding.estado}
-                        onChange={(e) => handleChange(index, 'estado', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getStatusColor(finding.estado)} ${errors.some(e => e.index === index && e.field === 'estado') ? 'is-error' : ''} ${finding.estado ? 'is-filled' : ''}`}
-                        aria-label={`Estado hallazgo ${index + 1}`}
-                      >
-                        <option value="">Seleccionar...</option>
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="En progreso">En progreso</option>
-                        <option value="Resuelto">Resuelto</option>
-                      </select>
-                    </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      {isEditing && (
-                        <button
-                          onClick={() => removeFinding(index)}
-                          className="inline-flex items-center justify-center rounded-md border border-red-300 p-2 text-red-700 hover:bg-red-50 hover:border-red-400 transition-colors"
-                          title={`Eliminar hallazgo ${index + 1}`}
-                          aria-label={`Eliminar hallazgo ${index + 1}`}
-                        >
-                          <IconTrash size={16} className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-          <div className="mt-4">
-            {isEditing && (
-              <button
-                onClick={addFinding}
-                className="inline-flex items-center gap-2 rounded-md border border-blue-300 px-4 py-2 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors"
-              >
-                <IconPlus size={16} className="w-4 h-4" />
-                <span className="font-medium">Agregar hallazgo</span>
-              </button>
-            )}
-          </div>
-        </Card>
-
-        {isEditing && (
-          <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+        <div className="mt-4">
+          {isEditing && (
             <button
-              onClick={handleCancel}
-              disabled={isSaving}
-              className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
+              onClick={addFinding}
+              className="inline-flex items-center gap-2 rounded-md border border-blue-300 px-4 py-2 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors"
             >
-              <IconX size={16} className="w-4 h-4" />
-              Cancelar
+              <IconPlus size={16} className="w-4 h-4" />
+              <span className="font-medium">Agregar hallazgo</span>
             </button>
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
-            >
-              <IconDeviceFloppy size={16} className="w-5 h-5" />
-              {isSaving ? 'Guardando...' : 'Guardar'}
-            </button>
-          </div>
-        )}
+          )}
+        </div>
+      </Card>
 
-        {/* Resumen de hallazgos críticos */}
-        <h2 className="sr-only">Resumen de hallazgos críticos</h2>
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-center gap-6">
-            <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-red-100 text-red-600">
-               <IconBell className="w-10 h-10" />
-            </div>
-            <div>
-              <p className="text-4xl font-bold text-red-800 leading-none mb-2">
-                {findings.filter((f) => f.severidad === 'Alta').length}
-              </p>
-              <h3 className="font-semibold text-gray-900">Severidad Alta</h3>
-              <p className="text-sm text-gray-700">Problemas críticos</p>
-            </div>
-          </div>
+      {isEditing && (
+        <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
+          <button
+            onClick={handleCancel}
+            disabled={isSaving}
+            className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
+          >
+            <IconX size={16} className="w-4 h-4" />
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
+          >
+            <IconDeviceFloppy size={16} className="w-5 h-5" />
+            {isSaving ? 'Guardando...' : 'Guardar'}
+          </button>
+        </div>
+      )}
 
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 flex items-center gap-6">
-            <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-orange-100 text-orange-600">
-               <IconAlertTriangle className="w-10 h-10" />
-            </div>
-            <div>
-              <p className="text-4xl font-bold text-orange-800 leading-none mb-2">
-                {findings.filter((f) => f.severidad === 'Media').length}
-              </p>
-              <h3 className="font-semibold text-gray-900">Severidad Media</h3>
-              <p className="text-sm text-gray-700">Problemas moderados</p>
-            </div>
+      {/* Resumen de hallazgos críticos */}
+      <h2 className="sr-only">Resumen de hallazgos críticos</h2>
+      <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 flex items-center gap-6">
+          <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-red-100 text-red-600">
+             <IconBell className="w-10 h-10" />
           </div>
-
-          <div className="bg-green-50 border border-green-200 rounded-lg p-6 flex items-center gap-6">
-            <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-green-100 text-green-600">
-               <IconCheck className="w-10 h-10" />
-            </div>
-            <div>
-              <p className="text-4xl font-bold text-green-800 leading-none mb-2">
-                {findings.filter((f) => f.severidad === 'Baja').length}
-              </p>
-              <h3 className="font-semibold text-gray-900">Severidad Baja</h3>
-              <p className="text-sm text-gray-700">Mejoras menores</p>
-            </div>
+          <div>
+            <p className="text-4xl font-bold text-red-800 leading-none mb-2">
+              {findings.filter((f) => f.severidad === 'Alta').length}
+            </p>
+            <h3 className="font-semibold text-gray-900">Severidad Alta</h3>
+            <p className="text-sm text-gray-700">Problemas críticos</p>
           </div>
         </div>
 
-        <ConfirmModal
-          open={confirmDelete.open}
-          title="Eliminar hallazgo"
-          message="¿Seguro que deseas eliminar este hallazgo?"
-          confirmText="Eliminar"
-          cancelText="Cancelar"
-          onCancel={() => setConfirmDelete({ open: false, index: -1 })}
-          onConfirm={() => {
-            if (confirmDelete.index < 0) return;
-            setFindings(findings.filter((_, i) => i !== confirmDelete.index));
-            setConfirmDelete({ open: false, index: -1 });
-          }}
-        />
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 flex items-center gap-6">
+          <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-orange-100 text-orange-600">
+             <IconAlertTriangle className="w-10 h-10" />
+          </div>
+          <div>
+            <p className="text-4xl font-bold text-orange-800 leading-none mb-2">
+              {findings.filter((f) => f.severidad === 'Media').length}
+            </p>
+            <h3 className="font-semibold text-gray-900">Severidad Media</h3>
+            <p className="text-sm text-gray-700">Problemas moderados</p>
+          </div>
+        </div>
 
-        <ConfirmModal
-          open={confirmDiscardChanges}
-          title="Descartar cambios"
-          message="¿Seguro que deseas descartar los cambios?"
-          confirmText="Descartar"
-          cancelText="Volver"
-          onCancel={() => setConfirmDiscardChanges(false)}
-          onConfirm={() => {
-            setConfirmDiscardChanges(false);
-            setIsEditing(false);
-            if (activeProject) loadData(activeProject.id);
-          }}
-        />
+        <div className="bg-green-50 border border-green-200 rounded-lg p-6 flex items-center gap-6">
+          <div className="flex-shrink-0 flex items-center justify-center w-20 h-20 rounded-full bg-green-100 text-green-600">
+             <IconCheck className="w-10 h-10" />
+          </div>
+          <div>
+            <p className="text-4xl font-bold text-green-800 leading-none mb-2">
+              {findings.filter((f) => f.severidad === 'Baja').length}
+            </p>
+            <h3 className="font-semibold text-gray-900">Severidad Baja</h3>
+            <p className="text-sm text-gray-700">Mejoras menores</p>
+          </div>
+        </div>
       </div>
+
+      <ConfirmModal
+        open={confirmDelete.open}
+        title="Eliminar hallazgo"
+        message="¿Seguro que deseas eliminar este hallazgo?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onCancel={() => setConfirmDelete({ open: false, index: -1 })}
+        onConfirm={() => {
+          if (confirmDelete.index < 0) return;
+          setFindings(findings.filter((_, i) => i !== confirmDelete.index));
+          setConfirmDelete({ open: false, index: -1 });
+        }}
+      />
+
+      <ConfirmModal
+        open={confirmDiscardChanges}
+        title="Descartar cambios"
+        message="¿Seguro que deseas descartar los cambios?"
+        confirmText="Descartar"
+        cancelText="Volver"
+        onCancel={() => setConfirmDiscardChanges(false)}
+        onConfirm={() => {
+          setConfirmDiscardChanges(false);
+          setIsEditing(false);
+          if (activeProject) loadData(activeProject.id);
+        }}
+      />
     </div>
   );
 }
