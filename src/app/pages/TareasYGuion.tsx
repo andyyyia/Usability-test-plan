@@ -196,7 +196,7 @@ export function TareasYGuion() {
           {!isEditing && (
             <button
               onClick={handleEdit}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 btn-editar"
             >
               <IconPencil size={16} className="w-4 h-4" />
               Editar
@@ -270,8 +270,8 @@ export function TareasYGuion() {
                         value={task.texto}
                         onChange={(e) => handleTaskChange(index, 'texto', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          } ${errors.some(e => e.index === index && e.field === 'texto') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm ${!isEditing ? 'is-disabled' : ''
+                          } ${errors.some(e => e.index === index && e.field === 'texto') ? 'is-error' : ''} ${task.texto ? 'is-filled' : ''}`}
                         placeholder="Describe la tarea que debe realizar el usuario..."
                         aria-label={`Texto tarea ${task.id}`}
                       />
@@ -283,8 +283,8 @@ export function TareasYGuion() {
                         value={task.pregunta}
                         onChange={(e) => handleTaskChange(index, 'pregunta', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          } ${errors.some(e => e.index === index && e.field === 'pregunta') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm ${!isEditing ? 'is-disabled' : ''
+                          } ${errors.some(e => e.index === index && e.field === 'pregunta') ? 'is-error' : ''} ${task.pregunta ? 'is-filled' : ''}`}
                         placeholder="Pregunta para profundizar..."
                         aria-label={`Pregunta tarea ${task.id}`}
                       />
@@ -296,8 +296,8 @@ export function TareasYGuion() {
                         value={task.exito}
                         onChange={(e) => handleTaskChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          } ${errors.some(e => e.index === index && e.field === 'exito') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm ${!isEditing ? 'is-disabled' : ''
+                          } ${errors.some(e => e.index === index && e.field === 'exito') ? 'is-error' : ''} ${task.exito ? 'is-filled' : ''}`}
                         placeholder="¿Cómo saber si tuvo éxito?"
                         aria-label={`Éxito tarea ${task.id}`}
                       />

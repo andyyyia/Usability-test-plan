@@ -44,9 +44,9 @@ export function FormRow({
           max={max}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error && errorMessage ? `${id}-error` : undefined}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
-            error ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-          } ${disabled ? '!bg-gray-100 !text-gray-500 cursor-not-allowed' : ''}`}
+          className={`form-input w-full px-3 py-2 ${
+            error ? 'is-error' : ''
+          } ${value && value.toString().trim() !== '' ? 'is-filled' : ''} ${disabled ? 'is-disabled' : ''}`}
         />
         {error && errorMessage && (
           <p id={`${id}-error`} className="mt-1 text-xs text-red-600 font-medium">

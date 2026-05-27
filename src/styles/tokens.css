@@ -1,4 +1,5 @@
 :root {
+<<<<<<< Updated upstream
   /* TIPOGRAFÍA */
   --font-title: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
@@ -90,4 +91,40 @@ body, p, label, table, li, input, button, select, textarea {
   font-family: var(--font-body);
   font-size: var(--text-base);
   font-weight: var(--weight-regular);
+=======
+  /* Transition tokens */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Colors */
+  --color-primary: #030213;
+  --color-primary-hover: #232233;
+  --color-secondary: oklch(0.95 0.0058 264.53);
+  --color-sidebar-active: #152d47;
+  --color-border: rgba(0, 0, 0, 0.1);
+  --color-border-strong: rgba(0, 0, 0, 0.25);
+  --color-bg-card: #ffffff;
+  --color-bg-secondary: #f8fafc;
+
+  /* Severity Semantics */
+  --color-error: #ef4444;
+  --color-error-light: #fef2f2;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fffbeb;
+  --color-success: #10b981;
+  --color-success-light: #ecfdf5;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+
+  /* Radii */
+  --radius-sm: calc(0.625rem - 4px);
+  --radius-md: calc(0.625rem - 2px);
+  --radius-lg: 0.625rem;
+
+  /* Font Weights */
+  --weight-medium: 500;
+>>>>>>> Stashed changes
 }

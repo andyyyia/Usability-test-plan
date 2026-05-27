@@ -113,10 +113,15 @@ export function Sidebar() {
   return (
     <aside
       aria-label="Menú principal"
-      className="w-full sm:w-64 bg-white shadow-lg h-auto sm:h-screen sm:sticky sm:top-0 flex flex-col overflow-y-auto"
+      className="w-full sm:w-64 bg-[#1E3A5F] shadow-lg h-auto sm:h-screen sm:sticky sm:top-0 flex flex-col overflow-y-auto"
     >
+<<<<<<< Updated upstream
       <div className="p-6 bg-[#1E3A5F]">
         <h2 className="text-white font-bold text-lg" style={{ fontFamily: 'var(--font-title)', fontWeight: 'var(--weight-black)' }}>UX Testing</h2>
+=======
+      <div className="p-6 bg-[#1E3A5F] border-b border-blue-900/50">
+        <h2 className="text-white font-bold text-lg">UX Testing</h2>
+>>>>>>> Stashed changes
         <p className="mt-1 text-sm text-blue-50">Sistema de Usabilidad</p>
         
         <div className="mt-8 bg-[#152d47] p-3 rounded-lg border border-[#2a4d7a] shadow-inner relative">
@@ -267,10 +272,10 @@ export function Sidebar() {
                 <NavLink
                   to={item.to}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+                    `flex items-center gap-3 px-4 py-3 sidebar-link ${
                       isActive
-                        ? 'bg-[#1E3A5F] text-white'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'sidebar-link-active'
+                        : ''
                     }`
                   }
                 >
@@ -283,8 +288,8 @@ export function Sidebar() {
         </ul>
       </nav>
       
-      <div className="p-4 border-t border-gray-200">
-        <p className="text-xs text-gray-700 text-center">
+      <div className="p-4 border-t border-blue-900/50">
+        <p className="text-xs text-blue-200/70 text-center">
           © 2026 Usability Testing Dashboard
         </p>
       </div>

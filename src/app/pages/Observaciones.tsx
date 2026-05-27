@@ -205,6 +205,19 @@ export function Observaciones() {
     }
   };
 
+  const getSeverityRowColor = (severity: string) => {
+    switch (severity) {
+      case 'Alta':
+        return 'row-severity-alta';
+      case 'Media':
+        return 'row-severity-media';
+      case 'Baja':
+        return 'row-severity-baja';
+      default:
+        return 'table-row-interactive';
+    }
+  };
+
   if (!activeProject) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -237,7 +250,7 @@ export function Observaciones() {
             {!isEditing && (
               <button
                 onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 btn-editar"
               >
                 <IconPencil size={16} className="w-4 h-4" />
                 Editar
@@ -293,7 +306,7 @@ export function Observaciones() {
                 {currentObservations.map((obs, localIndex) => {
                   const index = indexOfFirstItem + localIndex;
                   return (
-                  <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                  <tr key={index} className={getSeverityRowColor(obs.severidad)}>
                     <td className="border border-gray-300 px-3 py-2">
                       <input
                         id={`obs-${index}-participante`}
@@ -301,7 +314,7 @@ export function Observaciones() {
                         value={obs.participante}
                         onChange={(e) => handleChange(index, 'participante', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'participante') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'participante') ? 'is-error' : ''} ${obs.participante ? 'is-filled' : ''}`}
                         placeholder="Usuario 1"
                         aria-label={`Participante fila ${index + 1}`}
                       />
@@ -313,7 +326,7 @@ export function Observaciones() {
                         value={obs.perfil}
                         onChange={(e) => handleChange(index, 'perfil', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'perfil') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'perfil') ? 'is-error' : ''} ${obs.perfil ? 'is-filled' : ''}`}
                         placeholder="Avanzado"
                         aria-label={`Perfil fila ${index + 1}`}
                       />
@@ -325,7 +338,7 @@ export function Observaciones() {
                         value={obs.tarea}
                         onChange={(e) => handleChange(index, 'tarea', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'tarea') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tarea') ? 'is-error' : ''} ${obs.tarea ? 'is-filled' : ''}`}
                         placeholder="T1"
                         aria-label={`Tarea fila ${index + 1}`}
                       />
@@ -336,7 +349,7 @@ export function Observaciones() {
                         value={obs.exito}
                         onChange={(e) => handleChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'exito') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'exito') ? 'is-error' : ''} ${obs.exito ? 'is-filled' : ''}`}
                         aria-label={`Éxito fila ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -354,7 +367,7 @@ export function Observaciones() {
                         value={obs.tiempo}
                         onChange={(e) => handleChange(index, 'tiempo', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full min-w-[80px] px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full min-w-[80px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'is-error' : ''} ${obs.tiempo ? 'is-filled' : ''}`}
                         placeholder="120"
                         aria-label={`Tiempo fila ${index + 1}`}
                       />
@@ -368,7 +381,7 @@ export function Observaciones() {
                         value={obs.errores}
                         onChange={(e) => handleChange(index, 'errores', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full min-w-[70px] px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full min-w-[70px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'is-error' : ''} ${obs.errores ? 'is-filled' : ''}`}
                         placeholder="2"
                         aria-label={`Errores fila ${index + 1}`}
                       />
@@ -379,7 +392,7 @@ export function Observaciones() {
                         value={obs.comentarios}
                         onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'is-error' : ''} ${obs.comentarios ? 'is-filled' : ''}`}
                         placeholder="Comentarios..."
                         rows={2}
                         aria-label={`Comentarios fila ${index + 1}`}
@@ -391,7 +404,7 @@ export function Observaciones() {
                         value={obs.problema}
                         onChange={(e) => handleChange(index, 'problema', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${obs.problema ? 'is-filled' : ''}`}
                         placeholder="Problema..."
                         rows={2}
                         aria-label={`Problema fila ${index + 1}`}
@@ -403,13 +416,13 @@ export function Observaciones() {
                         value={obs.severidad}
                         onChange={(e) => handleChange(index, 'severidad', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${!isEditing ? 'cursor-not-allowed opacity-70' : ''} ${getSeverityColor(obs.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(obs.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${obs.severidad ? 'is-filled' : ''}`}
                         aria-label={`Severidad fila ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Media">Media</option>
-                        <option value="Baja">Baja</option>
+                        <option value="Alta" className="option-alta">Alta</option>
+                        <option value="Media" className="option-media">Media</option>
+                        <option value="Baja" className="option-baja">Baja</option>
                       </select>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -418,7 +431,7 @@ export function Observaciones() {
                         value={obs.mejora}
                         onChange={(e) => handleChange(index, 'mejora', e.target.value)}
                         disabled={!isEditing}
-                        className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded bg-transparent resize-none ${!isEditing ? 'text-gray-500 cursor-not-allowed' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'is-error' : ''} ${obs.mejora ? 'is-filled' : ''}`}
                         placeholder="Mejora..."
                         rows={2}
                         aria-label={`Mejora fila ${index + 1}`}

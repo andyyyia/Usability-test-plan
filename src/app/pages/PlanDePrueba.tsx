@@ -317,7 +317,7 @@ export function PlanDePrueba() {
             {!isEditing && (
               <button
                 onClick={handleEdit}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 btn-editar"
               >
                 <IconPencil size={16} className="w-4 h-4" />
                 Editar
@@ -394,9 +394,9 @@ export function PlanDePrueba() {
                     id="metodo"
                     value={metodo}
                     onChange={(e) => setMetodo(e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent ${
-                      errors.includes('metodo') ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'
-                    } ${(!isEditing || isSaving) ? '!bg-gray-100 !text-gray-500 cursor-not-allowed' : ''}`}
+                    className={`form-input w-full px-3 py-2 ${
+                      errors.includes('metodo') ? 'is-error' : ''
+                    } ${metodo ? 'is-filled' : ''} ${(!isEditing || isSaving) ? 'is-disabled' : ''}`}
                     disabled={!isEditing || isSaving}
                   >
                     <option value="">Seleccionar método...</option>
@@ -491,9 +491,9 @@ export function PlanDePrueba() {
                           value={task.scenario}
                           onChange={(e) => handleTaskChange(index, 'scenario', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
-                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          } ${taskErrors.some(te => te.index === index && te.field === 'scenario') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                          className={`form-input w-full px-2 py-1 text-sm ${
+                            !isEditing ? 'is-disabled' : ''
+                          } ${taskErrors.some(te => te.index === index && te.field === 'scenario') ? 'is-error' : ''} ${task.scenario ? 'is-filled' : ''}`}
                           placeholder="Describe el escenario..."
                         />
                       </td>
@@ -504,9 +504,9 @@ export function PlanDePrueba() {
                           value={task.expectedResult}
                           onChange={(e) => handleTaskChange(index, 'expectedResult', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
-                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          } ${taskErrors.some(te => te.index === index && te.field === 'expectedResult') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                          className={`form-input w-full px-2 py-1 text-sm ${
+                            !isEditing ? 'is-disabled' : ''
+                          } ${taskErrors.some(te => te.index === index && te.field === 'expectedResult') ? 'is-error' : ''} ${task.expectedResult ? 'is-filled' : ''}`}
                           placeholder="Resultado esperado..."
                         />
                       </td>
@@ -517,9 +517,9 @@ export function PlanDePrueba() {
                           value={task.mainMetric}
                           onChange={(e) => handleTaskChange(index, 'mainMetric', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
-                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          } ${taskErrors.some(te => te.index === index && te.field === 'mainMetric') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                          className={`form-input w-full px-2 py-1 text-sm ${
+                            !isEditing ? 'is-disabled' : ''
+                          } ${taskErrors.some(te => te.index === index && te.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
                           placeholder="Ej: Tiempo, éxito..."
                         />
                       </td>
@@ -530,9 +530,9 @@ export function PlanDePrueba() {
                           value={task.successCriteria}
                           onChange={(e) => handleTaskChange(index, 'successCriteria', e.target.value)}
                           disabled={!isEditing}
-                          className={`w-full px-2 py-1 text-sm border-0 focus:outline-none focus:ring-2 focus:border-transparent rounded ${
-                            !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-                          } ${taskErrors.some(te => te.index === index && te.field === 'successCriteria') ? 'ring-2 ring-red-500 bg-red-50' : 'focus:ring-blue-500'}`}
+                          className={`form-input w-full px-2 py-1 text-sm ${
+                            !isEditing ? 'is-disabled' : ''
+                          } ${taskErrors.some(te => te.index === index && te.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
                           placeholder="¿Cómo medir éxito?"
                         />
                       </td>
@@ -623,9 +623,9 @@ export function PlanDePrueba() {
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Escribe aquí recordatorios, riesgos, sesgos a evitar o instrucciones para la sesión."
               disabled={!isEditing}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:border-transparent min-h-[200px] resize-y ${
-                !isEditing ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-              } ${errors.includes('notas') ? 'border-red-500 bg-red-50 focus:ring-red-500' : 'border-gray-300 focus:ring-blue-500'}`}
+              className={`form-input w-full px-3 py-2 min-h-[200px] resize-y ${
+                !isEditing ? 'is-disabled' : ''
+              } ${errors.includes('notas') ? 'is-error' : ''} ${notas ? 'is-filled' : ''}`}
             />
           </Card>
         </div>
