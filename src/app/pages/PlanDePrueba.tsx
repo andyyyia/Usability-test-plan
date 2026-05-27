@@ -310,8 +310,8 @@ export function PlanDePrueba() {
 
         <header className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Plan de prueba de usabilidad - {activeProject.nombre}</h1>
-            <p className="text-gray-600 mt-1">Define el contexto y parámetros de la prueba</p>
+            <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>Plan de prueba de usabilidad - {activeProject.nombre}</h1>
+            <p className="text-gray-600 mt-1" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)' }}>Define el contexto y parámetros de la prueba</p>
           </div>
           <div className="flex gap-3">
             {!isEditing && (

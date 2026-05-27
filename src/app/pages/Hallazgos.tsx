@@ -281,8 +281,8 @@ export function Hallazgos() {
 
         <div className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Síntesis de hallazgos y plan de mejora - {activeProject.nombre}</h1>
-            <p className="mt-1 text-gray-800">Documenta problemas encontrados y sus recomendaciones</p>
+            <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>Síntesis de hallazgos y plan de mejora - {activeProject.nombre}</h1>
+            <p className="mt-1 text-gray-800" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)' }}>Documenta problemas encontrados y sus recomendaciones</p>
           </div>
           <div className="flex gap-3">
             {!isEditing && (

@@ -116,7 +116,7 @@ export function Sidebar() {
       className="w-full sm:w-64 bg-white shadow-lg h-auto sm:h-screen sm:sticky sm:top-0 flex flex-col overflow-y-auto"
     >
       <div className="p-6 bg-[#1E3A5F]">
-        <h2 className="text-white font-bold text-lg">UX Testing</h2>
+        <h2 className="text-white font-bold text-lg" style={{ fontFamily: 'var(--font-title)', fontWeight: 'var(--weight-black)' }}>UX Testing</h2>
         <p className="mt-1 text-sm text-blue-50">Sistema de Usabilidad</p>
         
         <div className="mt-8 bg-[#152d47] p-3 rounded-lg border border-[#2a4d7a] shadow-inner relative">
@@ -275,7 +275,7 @@ export function Sidebar() {
                   }
                 >
                   <Icon aria-hidden="true" className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-medium" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', fontWeight: 'var(--weight-medium)' }}>{item.label}</span>
                 </NavLink>
               </li>
             );

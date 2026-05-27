@@ -18,7 +18,7 @@ function MetricCard({ title, value, icon: Icon, color }: { title: string; value:
       </div>
       <div>
         <p className="text-sm text-gray-600">{title}</p>
-        <p className="text-2xl font-bold text-gray-900">{value}</p>
+        <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>{value}</p>
       </div>
     </div>
   );
@@ -140,8 +140,8 @@ export function Dashboard() {
         ]} />
 
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard - {activeProject.nombre}</h1>
-          <p className="text-gray-700 mt-1">Resumen general y reporte final de las pruebas de usabilidad</p>
+          <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>Dashboard - {activeProject.nombre}</h1>
+          <p className="text-gray-700 mt-1" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)' }}>Resumen general y reporte final de las pruebas de usabilidad</p>
         </div>
 
         <Stepper steps={getSteps()} />

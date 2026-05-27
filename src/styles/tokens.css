@@ -85,3 +85,9 @@
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
 }
+
+body, p, label, table, li, input, button, select, textarea {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  font-weight: var(--weight-regular);
+}

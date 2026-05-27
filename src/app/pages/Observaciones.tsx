@@ -230,8 +230,8 @@ export function Observaciones() {
 
         <header className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Registro de observación - {activeProject.nombre}</h1>
-            <p className="text-gray-600 mt-1">Documenta las observaciones durante las pruebas</p>
+            <h1 className="text-3xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-title)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>Registro de observación - {activeProject.nombre}</h1>
+            <p className="text-gray-600 mt-1" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', color: 'var(--color-text-secondary)' }}>Documenta las observaciones durante las pruebas</p>
           </div>
           <div className="flex gap-3">
             {!isEditing && (

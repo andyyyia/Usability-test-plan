@@ -29,7 +29,7 @@ export function FormRow({
 }: FormRowProps) {
   return (
     <div className="flex items-start gap-4 mb-3">
-      <label htmlFor={id} className="w-48 text-sm font-medium text-gray-700 flex-shrink-0 mt-2">
+      <label htmlFor={id} className="w-48 text-sm font-medium text-gray-700 flex-shrink-0 mt-2" style={{ fontWeight: 'var(--weight-medium)' }}>
         {label} {required && <span className="text-red-500" aria-hidden="true">*</span>}
       </label>
       <div className="flex-1">
