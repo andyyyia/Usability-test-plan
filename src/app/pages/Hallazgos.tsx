@@ -288,11 +288,12 @@ export function Hallazgos() {
             {!isEditing && (
               <button
                 onClick={handleEdit}
-                className="inline-flex items-center justify-center rounded-md border border-blue-300 p-2 text-blue-700 hover:bg-blue-50 hover:border-blue-400 transition-colors"
+                className="flex items-center gap-2 px-4 py-2 btn-editar"
                 title="Editar hallazgo"
                 aria-label="Editar hallazgo"
               >
-                <IconPencil size={16} className="w-4 h-4" />
+                <IconPencil className="w-4 h-4" />
+                Editar
               </button>
             )}
           </div>

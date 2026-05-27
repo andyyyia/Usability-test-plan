@@ -12,15 +12,9 @@ import { useProjectProgress } from '../hooks/useProjectProgress';
 
 function MetricCard({ title, value, icon: Icon, color }: { title: string; value: string | number; icon: any; color: string }) {
   return (
-<<<<<<< Updated upstream
-    <div className="bg-white rounded-lg shadow-sm p-6 flex items-center gap-4">
+    <div className="metric-card p-6 flex items-center gap-4">
       <div className="p-3 rounded-lg" style={{ backgroundColor: color }}>
         <Icon size={20} className="text-white" />
-=======
-    <div className="metric-card p-6 flex items-center gap-4">
-      <div className={`p-3 rounded-lg ${color}`}>
-        <Icon className="w-6 h-6 text-white" />
->>>>>>> Stashed changes
       </div>
       <div>
         <p className="text-sm text-gray-600">{title}</p>
