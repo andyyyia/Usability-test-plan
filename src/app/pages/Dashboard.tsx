@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { CheckCircle, Clock, AlertTriangle, TrendingUp } from 'lucide-react';
+import { IconCircleCheck, IconClock, IconAlertTriangle, IconTrendingUp } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { Breadcrumbs } from '../components/Breadcrumbs';
@@ -13,8 +13,8 @@ import { useProjectProgress } from '../hooks/useProjectProgress';
 function MetricCard({ title, value, icon: Icon, color }: { title: string; value: string | number; icon: any; color: string }) {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 flex items-center gap-4">
-      <div className={`p-3 rounded-lg ${color}`}>
-        <Icon className="w-6 h-6 text-white" />
+      <div className="p-3 rounded-lg" style={{ backgroundColor: color }}>
+        <Icon size={20} className="text-white" />
       </div>
       <div>
         <p className="text-sm text-gray-600">{title}</p>
@@ -151,26 +151,26 @@ export function Dashboard() {
           <MetricCard
             title="Tareas exitosas"
             value={metrics.exitoPercent}
-            icon={CheckCircle}
-            color="bg-green-500"
+            icon={IconCircleCheck}
+            color="var(--color-success)"
           />
           <MetricCard
             title="Tiempo promedio"
             value={metrics.tiempoPromo}
-            icon={Clock}
-            color="bg-blue-500"
+            icon={IconClock}
+            color="var(--color-info)"
           />
           <MetricCard
             title="Total de errores"
             value={metrics.totalErrores}
-            icon={AlertTriangle}
-            color="bg-orange-500"
+            icon={IconAlertTriangle}
+            color="var(--color-warning)"
           />
           <MetricCard
             title="Hallazgos críticos"
             value={metrics.hallazgosCrit}
-            icon={TrendingUp}
-            color="bg-red-500"
+            icon={IconTrendingUp}
+            color="var(--color-error)"
           />
         </div>
 
@@ -193,7 +193,7 @@ export function Dashboard() {
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center p-6 text-gray-500 min-h-[300px]">
-                <AlertTriangle className="w-12 h-12 text-gray-300 mb-3" />
+                <IconAlertTriangle size={48} className="text-gray-300 mb-3" />
                 <p>No hay observaciones registradas aún.</p>
               </div>
             )}
@@ -203,7 +203,7 @@ export function Dashboard() {
             <span className="sr-only">Gráfico circular que muestra la distribución de hallazgos por nivel de severidad: Alta, Media y Baja.</span>
             {severityData.every(d => d.value === 0) ? (
               <div className="flex flex-col items-center justify-center p-6 text-gray-500 min-h-[300px]">
-                <AlertTriangle className="w-12 h-12 text-gray-300 mb-3" />
+                <IconAlertTriangle size={48} className="text-gray-300 mb-3" />
                 <p>No hay hallazgos registrados aún.</p>
               </div>
             ) : (
@@ -283,7 +283,7 @@ export function Dashboard() {
             <div className="space-y-3">
                {criticalProblems.map((problem, index) => (
                 <div key={index} className="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <IconAlertTriangle size={20} className="text-red-600 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">{problem.problema}</p>
                     <p className="text-xs text-gray-600 mt-1">Frecuencia: {problem.frecuencia}</p>

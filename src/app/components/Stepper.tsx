@@ -1,4 +1,4 @@
-import { Check } from 'lucide-react';
+import { IconCircleCheck, IconCircle } from '@tabler/icons-react';
 import React from 'react';
 
 export type StepStatus = 'completed' | 'current' | 'pending';
@@ -45,15 +45,22 @@ export function Stepper({ steps }: StepperProps) {
             
             return (
               <div key={step.id} className="flex flex-col items-center relative z-10 w-32 group">
-                {/* Circle */}
-                <div 
-                  className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-[3px] transition-all duration-300
-                    ${isCompleted ? 'bg-green-500 border-green-500 text-white shadow-md' : 
-                      isCurrent ? 'bg-white border-[#1E3A5F] text-[#1E3A5F] shadow-lg ring-4 ring-blue-50' : 
-                      'bg-white border-gray-300 text-gray-400 group-hover:border-gray-400'}`}
-                >
-                  {isCompleted ? <Check className="w-6 h-6" /> : step.id}
-                </div>
+                {isCompleted ? (
+                  <div className="bg-white rounded-full flex items-center justify-center relative z-10 w-12 h-12">
+                    <IconCircleCheck size={48} color="var(--color-success)" stroke={1.5} />
+                  </div>
+                ) : isCurrent ? (
+                  <div 
+                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-[3px] transition-all duration-300 bg-white shadow-lg ring-4 ring-blue-50 relative z-10"
+                    style={{ borderColor: 'var(--color-primary)', color: 'var(--color-primary)' }}
+                  >
+                    {step.id}
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-full flex items-center justify-center relative z-10 w-12 h-12">
+                    <IconCircle size={48} color="var(--color-text-muted)" stroke={1.5} />
+                  </div>
+                )}
                 
                 {/* Text and status */}
                 <div className="mt-4 text-center">

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { FormRow } from '../components/FormRow';
-import { Save, Edit2, X, Plus, Trash2 } from 'lucide-react';
+import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -319,7 +319,7 @@ export function PlanDePrueba() {
                 onClick={handleEdit}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <Edit2 className="w-4 h-4" />
+                <IconPencil size={16} className="w-4 h-4" />
                 Editar
               </button>
             )}
@@ -543,7 +543,7 @@ export function PlanDePrueba() {
                             className="text-red-600 hover:text-red-800 transition-colors p-1"
                             title="Eliminar tarea"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <IconTrash size={16} className="w-4 h-4" />
                           </button>
                         )}
                       </td>
@@ -558,7 +558,7 @@ export function PlanDePrueba() {
                   onClick={addTask}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <Plus className="w-4 h-4" />
+                  <IconPlus size={16} className="w-4 h-4" />
                   Añadir tarea
                 </button>
               )}
@@ -637,7 +637,7 @@ export function PlanDePrueba() {
               disabled={isSaving}
               className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
             >
-              <X className="w-4 h-4" />
+              <IconX size={16} className="w-4 h-4" />
               Cancelar
             </button>
             <button
@@ -645,7 +645,7 @@ export function PlanDePrueba() {
               disabled={isSaving}
               className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
             >
-              <Save className="w-5 h-5" />
+              <IconDeviceFloppy size={16} className="w-5 h-5" />
               {isSaving ? 'Guardando...' : 'Guardar plan completo'}
             </button>
           </div>

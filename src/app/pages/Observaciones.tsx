@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { Plus, Save, Trash2, Edit2, X } from 'lucide-react';
+import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
@@ -239,7 +239,7 @@ export function Observaciones() {
                 onClick={handleEdit}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <Edit2 className="w-4 h-4" />
+                <IconPencil size={16} className="w-4 h-4" />
                 Editar
               </button>
             )}
@@ -431,7 +431,7 @@ export function Observaciones() {
                           className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                           aria-label={`Eliminar observación ${index + 1}`}
                         >
-                          <Trash2 className="w-4 h-4" />
+                          <IconTrash size={16} className="w-4 h-4" />
                           Eliminar
                         </button>
                       )}
@@ -476,7 +476,7 @@ export function Observaciones() {
                 onClick={addObservation}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                <Plus className="w-4 h-4" />
+                <IconPlus size={16} className="w-4 h-4" />
                 Añadir registro
               </button>
             )}
@@ -490,7 +490,7 @@ export function Observaciones() {
               disabled={isSaving}
               className={`flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-gray-300'}`}
             >
-              <X className="w-4 h-4" />
+              <IconX size={16} className="w-4 h-4" />
               Cancelar
             </button>
             <button
@@ -498,7 +498,7 @@ export function Observaciones() {
               disabled={isSaving}
               className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
             >
-              <Save className="w-5 h-5" />
+              <IconDeviceFloppy size={16} className="w-5 h-5" />
               {isSaving ? 'Guardando...' : 'Guardar observaciones completas'}
             </button>
           </div>

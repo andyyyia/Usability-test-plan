@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router';
-import { LayoutDashboard, FileText, ListChecks, Eye, TrendingUp, FolderPlus, Folder, Edit2, Trash2, X, MoreVertical } from 'lucide-react';
+import { IconLayoutDashboard, IconClipboardList, IconListCheck, IconEye, IconChartBar, IconFolderPlus, IconFolder, IconPencil, IconTrash, IconX, IconDotsVertical } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -103,11 +103,11 @@ export function Sidebar() {
     }
   };
   const navItems = [
-    { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/plan', label: 'Plan de prueba', icon: FileText },
-    { to: '/tareas', label: 'Tareas y guion', icon: ListChecks },
-    { to: '/observaciones', label: 'Observaciones', icon: Eye },
-    { to: '/hallazgos', label: 'Hallazgos', icon: TrendingUp },
+    { to: '/', label: 'Dashboard', icon: IconLayoutDashboard },
+    { to: '/plan', label: 'Plan de prueba', icon: IconClipboardList },
+    { to: '/tareas', label: 'Tareas y guion', icon: IconListCheck },
+    { to: '/observaciones', label: 'Observaciones', icon: IconEye },
+    { to: '/hallazgos', label: 'Hallazgos', icon: IconChartBar },
   ];
 
   return (
@@ -128,7 +128,7 @@ export function Sidebar() {
               aria-label="Opciones de proyecto"
               aria-expanded={showProjectMenu}
             >
-              <MoreVertical className="w-4 h-4" />
+              <IconDotsVertical size={16} />
             </button>
           </div>
           
@@ -155,7 +155,7 @@ export function Sidebar() {
                 </option>
               ))}
             </select>
-            <Folder aria-hidden="true" className="pointer-events-none absolute right-3 top-3 h-4 w-4 text-blue-100" />
+            <IconFolder size={16} aria-hidden="true" className="pointer-events-none absolute right-3 top-3 text-blue-100" />
           </div>
           
           {showProjectMenu && (
@@ -167,7 +167,7 @@ export function Sidebar() {
                   className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors font-medium border-b border-gray-100"
                   onClick={() => { setIsCreating(true); setIsEditingProj(false); setShowProjectMenu(false); }}
                 >
-                  <FolderPlus className="w-4 h-4 text-blue-600" />
+                  <IconFolderPlus size={16} className="text-blue-600" />
                   Nuevo Proyecto
                 </button>
                 {activeProject && (
@@ -176,14 +176,14 @@ export function Sidebar() {
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 transition-colors font-medium"
                       onClick={() => { setIsEditingProj(true); setIsCreating(false); setShowProjectMenu(false); }}
                     >
-                      <Edit2 className="w-4 h-4 text-orange-500" />
+                      <IconPencil size={16} className="text-orange-500" />
                       Editar actual
                     </button>
                     <button 
                       className="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors font-medium"
                       onClick={() => { setConfirmDelete(true); setShowProjectMenu(false); }}
                     >
-                      <Trash2 className="w-4 h-4 text-red-500" />
+                      <IconTrash size={16} className="text-red-500" />
                       Eliminar actual
                     </button>
                   </>
@@ -198,7 +198,7 @@ export function Sidebar() {
         <div className="p-4 bg-[#152d47] border-b border-[#2a4d7a]">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-xs text-blue-200 uppercase tracking-wider font-bold">Crear Proyecto</h3>
-            <button onClick={() => setIsCreating(false)} className="text-blue-100 hover:text-white"><X className="w-4 h-4"/></button>
+            <button onClick={() => setIsCreating(false)} className="text-blue-100 hover:text-white"><IconX size={16}/></button>
           </div>
           <input
             type="text"
@@ -230,7 +230,7 @@ export function Sidebar() {
         <div className="p-4 bg-[#1a385f] border-b border-[#2a4d7a]">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-blue-50">Editar Proyecto</h3>
-            <button onClick={() => setIsEditingProj(false)} className="text-blue-100 hover:text-white"><X className="w-4 h-4"/></button>
+            <button onClick={() => setIsEditingProj(false)} className="text-blue-100 hover:text-white"><IconX size={16}/></button>
           </div>
           <input
             type="text"
@@ -274,7 +274,7 @@ export function Sidebar() {
                     }`
                   }
                 >
-                  <Icon aria-hidden="true" className="w-5 h-5" />
+                  <Icon aria-hidden="true" size={18} />
                   <span className="font-medium" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', fontWeight: 'var(--weight-medium)' }}>{item.label}</span>
                 </NavLink>
               </li>

@@ -1,4 +1,4 @@
-import { ChevronRight, Home } from 'lucide-react';
+import { IconChevronRight, IconHome } from '@tabler/icons-react';
 import { NavLink } from 'react-router';
 
 export interface BreadcrumbItem {
@@ -19,7 +19,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
             to="/" 
             className="text-gray-500 hover:text-[#1E3A5F] transition-colors p-1.5 rounded-md hover:bg-gray-100 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#1E3A5F]"
           >
-            <Home className="w-4 h-4" />
+            <IconHome size={16} />
             <span className="sr-only">Home</span>
           </NavLink>
         </li>
@@ -27,7 +27,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
           const isLast = index === items.length - 1;
           return (
             <li key={index} className="flex items-center">
-              <ChevronRight className="w-4 h-4 text-gray-400 mx-1 flex-shrink-0" />
+              <IconChevronRight size={16} className="text-gray-400 mx-1 flex-shrink-0" />
               {item.to && !isLast ? (
                 <NavLink 
                   to={item.to} 
