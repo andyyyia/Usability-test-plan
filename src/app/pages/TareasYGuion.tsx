@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
+import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
@@ -28,7 +28,13 @@ export function TareasYGuion() {
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
+  const [visible, setVisible] = useState(false);
   const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   // No need for separate state for closing questions as they are just a guide
 
@@ -179,7 +185,7 @@ export function TareasYGuion() {
   }
 
   return (
-    <div className={isLoading ? 'opacity-50' : ''}>
+    <div className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'} ${isLoading ? 'opacity-50' : ''}`}>
       <Breadcrumbs items={[
         { label: 'Proyectos' },
         { label: activeProject.nombre },
@@ -372,13 +378,22 @@ export function TareasYGuion() {
               <IconX size={16} className="w-4 h-4" />
               Cancelar
             </button>
-            <button
+             <button
               onClick={handleSave}
               disabled={isSaving}
               className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
             >
-              <IconDeviceFloppy size={16} className="w-5 h-5" />
-              {isSaving ? 'Guardando...' : 'Guardar guion completo'}
+              {isSaving ? (
+                <>
+                  <IconLoader2 size={20} className="animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <IconDeviceFloppy size={16} className="w-5 h-5" />
+                  Guardar guion completo
+                </>
+              )}
             </button>
           </div>
         )}

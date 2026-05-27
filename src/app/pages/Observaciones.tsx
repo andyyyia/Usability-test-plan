@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
+import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2, IconChevronDown } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
@@ -31,10 +31,24 @@ export function Observaciones() {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
   const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
+  const toggleRow = (index: number) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
@@ -230,8 +244,8 @@ export function Observaciones() {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentObservations = observations.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(observations.length / itemsPerPage);  return (
-    <div className={isLoading ? 'opacity-50' : ''}>
+  const totalPages = Math.ceil(observations.length / itemsPerPage);  return (
+    <div className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'} ${isLoading ? 'opacity-50' : ''}`}>
       <Breadcrumbs items={[
         { label: 'Proyectos' },
         { label: activeProject.nombre },
@@ -304,151 +318,217 @@ export function Observaciones() {
             <tbody>
               {currentObservations.map((obs, localIndex) => {
                 const index = indexOfFirstItem + localIndex;
+                const isExpanded = !!expandedRows[index];
+
                 return (
-                <tr key={index} className={getSeverityRowColor(obs.severidad)}>
-                  <td>
-                    <input
-                      id={`obs-${index}-participante`}
-                      type="text"
-                      value={obs.participante}
-                      onChange={(e) => handleChange(index, 'participante', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'participante') ? 'is-error' : ''} ${obs.participante ? 'is-filled' : ''}`}
-                      placeholder="Usuario 1"
-                      aria-label={`Participante fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      id={`obs-${index}-perfil`}
-                      type="text"
-                      value={obs.perfil}
-                      onChange={(e) => handleChange(index, 'perfil', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'perfil') ? 'is-error' : ''} ${obs.perfil ? 'is-filled' : ''}`}
-                      placeholder="Avanzado"
-                      aria-label={`Perfil fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      id={`obs-${index}-tarea`}
-                      type="text"
-                      value={obs.tarea}
-                      onChange={(e) => handleChange(index, 'tarea', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tarea') ? 'is-error' : ''} ${obs.tarea ? 'is-filled' : ''}`}
-                      placeholder="T1"
-                      aria-label={`Tarea fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      id={`obs-${index}-exito`}
-                      value={obs.exito}
-                      onChange={(e) => handleChange(index, 'exito', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'exito') ? 'is-error' : ''} ${obs.exito ? 'is-filled' : ''}`}
-                      aria-label={`Éxito fila ${index + 1}`}
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="Sí">Sí</option>
-                      <option value="Con ayuda">Con ayuda</option>
-                      <option value="No">No</option>
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      id={`obs-${index}-tiempo`}
-                      type="number"
-                      min="0"
-                      max="36000"
-                      value={obs.tiempo}
-                      onChange={(e) => handleChange(index, 'tiempo', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full min-w-[80px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'is-error' : ''} ${obs.tiempo ? 'is-filled' : ''}`}
-                      placeholder="120"
-                      aria-label={`Tiempo fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      id={`obs-${index}-errores`}
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={obs.errores}
-                      onChange={(e) => handleChange(index, 'errores', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full min-w-[70px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'is-error' : ''} ${obs.errores ? 'is-filled' : ''}`}
-                      placeholder="2"
-                      aria-label={`Errores fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <textarea
-                      id={`obs-${index}-comentarios`}
-                      value={obs.comentarios}
-                      onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'is-error' : ''} ${obs.comentarios ? 'is-filled' : ''}`}
-                      placeholder="Comentarios..."
-                      rows={2}
-                      aria-label={`Comentarios fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <textarea
-                      id={`obs-${index}-problema`}
-                      value={obs.problema}
-                      onChange={(e) => handleChange(index, 'problema', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${obs.problema ? 'is-filled' : ''}`}
-                      placeholder="Problema..."
-                      rows={2}
-                      aria-label={`Problema fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <select
-                      id={`obs-${index}-severidad`}
-                      value={obs.severidad}
-                      onChange={(e) => handleChange(index, 'severidad', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(obs.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${obs.severidad ? 'is-filled' : ''}`}
-                      aria-label={`Severidad fila ${index + 1}`}
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="Alta" className="option-alta">Alta</option>
-                      <option value="Media" className="option-media">Media</option>
-                      <option value="Baja" className="option-baja">Baja</option>
-                    </select>
-                  </td>
-                  <td>
-                    <textarea
-                      id={`obs-${index}-mejora`}
-                      value={obs.mejora}
-                      onChange={(e) => handleChange(index, 'mejora', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'is-error' : ''} ${obs.mejora ? 'is-filled' : ''}`}
-                      placeholder="Mejora..."
-                      rows={2}
-                      aria-label={`Mejora fila ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    {isEditing && (
-                      <button
-                        onClick={() => deleteObservation(index)}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                        aria-label={`Eliminar observación ${index + 1}`}
+                <React.Fragment key={index}>
+                  <tr 
+                    className={`${getSeverityRowColor(obs.severidad)} cursor-pointer`}
+                    onClick={(e) => {
+                      const tagName = (e.target as HTMLElement).tagName.toLowerCase();
+                      if (['input', 'select', 'textarea', 'button', 'path', 'svg'].includes(tagName)) {
+                        return;
+                      }
+                      toggleRow(index);
+                    }}
+                  >
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleRow(index);
+                          }}
+                          className="p-1 hover:bg-gray-100 rounded transition-transform duration-250 flex-shrink-0"
+                          style={{
+                            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                            transition: 'transform 250ms ease'
+                          }}
+                          aria-label="Expandir detalles"
+                        >
+                          <IconChevronDown size={14} className="text-gray-500" />
+                        </button>
+                        <input
+                          id={`obs-${index}-participante`}
+                          type="text"
+                          value={obs.participante}
+                          onChange={(e) => handleChange(index, 'participante', e.target.value)}
+                          disabled={!isEditing}
+                          className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'participante') ? 'is-error' : ''} ${obs.participante ? 'is-filled' : ''}`}
+                          placeholder="Usuario 1"
+                          aria-label={`Participante fila ${index + 1}`}
+                        />
+                      </div>
+                    </td>
+                    <td>
+                      <input
+                        id={`obs-${index}-perfil`}
+                        type="text"
+                        value={obs.perfil}
+                        onChange={(e) => handleChange(index, 'perfil', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'perfil') ? 'is-error' : ''} ${obs.perfil ? 'is-filled' : ''}`}
+                        placeholder="Avanzado"
+                        aria-label={`Perfil fila ${index + 1}`}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        id={`obs-${index}-tarea`}
+                        type="text"
+                        value={obs.tarea}
+                        onChange={(e) => handleChange(index, 'tarea', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tarea') ? 'is-error' : ''} ${obs.tarea ? 'is-filled' : ''}`}
+                        placeholder="T1"
+                        aria-label={`Tarea fila ${index + 1}`}
+                      />
+                    </td>
+                    <td>
+                      <select
+                        id={`obs-${index}-exito`}
+                        value={obs.exito}
+                        onChange={(e) => handleChange(index, 'exito', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'exito') ? 'is-error' : ''} ${obs.exito ? 'is-filled' : ''}`}
+                        aria-label={`Éxito fila ${index + 1}`}
                       >
-                        <IconTrash size={16} className="w-4 h-4" />
-                        Eliminar
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                        <option value="">Seleccionar...</option>
+                        <option value="Sí">Sí</option>
+                        <option value="Con ayuda">Con ayuda</option>
+                        <option value="No">No</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        id={`obs-${index}-tiempo`}
+                        type="number"
+                        min="0"
+                        max="36000"
+                        value={obs.tiempo}
+                        onChange={(e) => handleChange(index, 'tiempo', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full min-w-[80px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'is-error' : ''} ${obs.tiempo ? 'is-filled' : ''}`}
+                        placeholder="120"
+                        aria-label={`Tiempo fila ${index + 1}`}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        id={`obs-${index}-errores`}
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={obs.errores}
+                        onChange={(e) => handleChange(index, 'errores', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full min-w-[70px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'is-error' : ''} ${obs.errores ? 'is-filled' : ''}`}
+                        placeholder="2"
+                        aria-label={`Errores fila ${index + 1}`}
+                      />
+                    </td>
+                    <td>
+                      <textarea
+                        id={`obs-${index}-comentarios`}
+                        value={obs.comentarios}
+                        onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'is-error' : ''} ${obs.comentarios ? 'is-filled' : ''}`}
+                        placeholder="Comentarios..."
+                        rows={2}
+                        aria-label={`Comentarios fila ${index + 1}`}
+                      />
+                    </td>
+                    <td>
+                      <textarea
+                        id={`obs-${index}-problema`}
+                        value={obs.problema}
+                        onChange={(e) => handleChange(index, 'problema', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${obs.problema ? 'is-filled' : ''}`}
+                        placeholder="Problema..."
+                        rows={2}
+                        aria-label={`Problema fila ${index + 1}`}
+                      />
+                    </td>
+                    <td>
+                      <select
+                        id={`obs-${index}-severidad`}
+                        value={obs.severidad}
+                        onChange={(e) => handleChange(index, 'severidad', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(obs.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${obs.severidad ? 'is-filled' : ''}`}
+                        style={{ transition: 'background-color 200ms ease, color 200ms ease, border-color var(--transition-fast)' }}
+                        aria-label={`Severidad fila ${index + 1}`}
+                      >
+                        <option value="">Seleccionar...</option>
+                        <option value="Alta" className="option-alta">Alta</option>
+                        <option value="Media" className="option-media">Media</option>
+                        <option value="Baja" className="option-baja">Baja</option>
+                      </select>
+                    </td>
+                    <td>
+                      <textarea
+                        id={`obs-${index}-mejora`}
+                        value={obs.mejora}
+                        onChange={(e) => handleChange(index, 'mejora', e.target.value)}
+                        disabled={!isEditing}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'is-error' : ''} ${obs.mejora ? 'is-filled' : ''}`}
+                        placeholder="Mejora..."
+                        rows={2}
+                        aria-label={`Mejora fila ${index + 1}`}
+                      />
+                    </td>
+                    <td>
+                      {isEditing && (
+                        <button
+                          onClick={() => deleteObservation(index)}
+                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                          aria-label={`Eliminar observación ${index + 1}`}
+                        >
+                          <IconTrash size={16} className="w-4 h-4" />
+                          Eliminar
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                  
+                  {/* Expandable detail row */}
+                  <tr className={isExpanded ? 'bg-blue-50/10' : 'hidden'}>
+                    <td colSpan={11} className="p-0 border-none">
+                      <div 
+                        className="overflow-hidden transition-all duration-[250ms] ease-in-out"
+                        style={{
+                          maxHeight: isExpanded ? '300px' : '0px',
+                          opacity: isExpanded ? 1 : 0,
+                          transition: 'max-height 250ms ease-in-out, opacity 250ms ease-in-out'
+                        }}
+                      >
+                        <div className="p-4 border-l-4 border-[#2d5a9e] bg-blue-50/5 flex flex-col gap-2 text-sm text-gray-700">
+                          <p className="font-semibold text-[#1e3a5f]">Detalles de la observación del Participante {index + 1}:</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
+                            <p><span className="font-semibold text-gray-900">Perfil:</span> {obs.perfil || 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-gray-900">Tarea:</span> {obs.tarea || 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-gray-900">Éxito:</span> {obs.exito || 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-gray-900">Tiempo:</span> {obs.tiempo ? `${obs.tiempo} seg` : 'Sin registrar'}</p>
+                            <p><span className="font-semibold text-gray-900">Errores:</span> {obs.errores || 0}</p>
+                            <p><span className="font-semibold text-gray-900">Severidad:</span> {obs.severidad || 'Sin registrar'}</p>
+                          </div>
+                          {obs.comentarios && (
+                            <p className="mt-1"><span className="font-semibold text-gray-900">Comentarios clave:</span> {obs.comentarios}</p>
+                          )}
+                          {obs.problema && (
+                            <p className="mt-1"><span className="font-semibold text-gray-900">Problema detectado:</span> {obs.problema}</p>
+                          )}
+                          {obs.mejora && (
+                            <p className="mt-1"><span className="font-semibold text-gray-900">Mejora propuesta:</span> {obs.mejora}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </React.Fragment>
                 );
               })}
             </tbody>
@@ -510,8 +590,17 @@ export function Observaciones() {
             disabled={isSaving}
             className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
           >
-            <IconDeviceFloppy size={16} className="w-5 h-5" />
-            {isSaving ? 'Guardando...' : 'Guardar observaciones completas'}
+            {isSaving ? (
+              <>
+                <IconLoader2 size={20} className="animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <IconDeviceFloppy size={16} className="w-5 h-5" />
+                Guardar observaciones completas
+              </>
+            )}
           </button>
         </div>
       )}

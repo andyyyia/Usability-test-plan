@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { IconAlertTriangle, IconPencil, IconX, IconCheck, IconTrash, IconDeviceFloppy, IconBell, IconPlus } from '@tabler/icons-react';
+import { IconAlertTriangle, IconPencil, IconX, IconCheck, IconTrash, IconDeviceFloppy, IconBell, IconPlus, IconLoader2 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
@@ -31,7 +31,13 @@ export function Hallazgos() {
 
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
+  const [visible, setVisible] = useState(false);
   const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (activeProject) {
@@ -271,7 +277,7 @@ export function Hallazgos() {
   }
 
   return (
-    <div className={isLoading ? 'opacity-50' : ''}>
+    <div className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'} ${isLoading ? 'opacity-50' : ''}`}>
       <Breadcrumbs items={[
         { label: 'Proyectos' },
         { label: activeProject.nombre },
@@ -390,6 +396,7 @@ export function Hallazgos() {
                         onChange={(e) => handleChange(index, 'severidad', e.target.value)}
                         disabled={!isEditing}
                         className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${finding.severidad ? 'is-filled' : ''}`}
+                        style={{ transition: 'background-color 200ms ease, color 200ms ease, border-color var(--transition-fast)' }}
                         aria-label={`Severidad hallazgo ${index + 1}`}
                       >
                         <option value="">Seleccionar...</option>
@@ -495,8 +502,17 @@ export function Hallazgos() {
             disabled={isSaving}
             className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
           >
-            <IconDeviceFloppy size={16} className="w-5 h-5" />
-            {isSaving ? 'Guardando...' : 'Guardar'}
+            {isSaving ? (
+              <>
+                <IconLoader2 size={20} className="animate-spin" />
+                Guardando...
+              </>
+            ) : (
+              <>
+                <IconDeviceFloppy size={16} className="w-5 h-5" />
+                Guardar
+              </>
+            )}
           </button>
         </div>
       )}

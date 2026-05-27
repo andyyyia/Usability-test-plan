@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { FormRow } from '../components/FormRow';
-import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus } from '@tabler/icons-react';
+import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -29,7 +29,13 @@ export function PlanDePrueba() {
   const [confirmDeleteTask, setConfirmDeleteTask] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [visible, setVisible] = useState(false);
   const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   // Fecha limites: desde hoy hasta 1 ano adelante
   const formatAsInputDate = (d: Date) => {
@@ -300,7 +306,7 @@ export function PlanDePrueba() {
   }
 
   return (
-    <div className={isLoading ? 'opacity-50' : ''}>
+    <div className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'} ${isLoading ? 'opacity-50' : ''}`}>
       <Breadcrumbs items={[
         { label: 'Proyectos' },
         { label: activeProject.nombre },
@@ -646,8 +652,17 @@ export function PlanDePrueba() {
               disabled={isSaving}
               className={`flex items-center gap-2 px-6 py-3 bg-[#1E3A5F] text-white text-lg font-medium rounded-lg shadow-sm transition-colors ${isSaving ? 'opacity-70 cursor-not-allowed' : 'hover:bg-[#152d47]'}`}
             >
-              <IconDeviceFloppy size={16} className="w-5 h-5" />
-              {isSaving ? 'Guardando...' : 'Guardar plan completo'}
+              {isSaving ? (
+                <>
+                  <IconLoader2 size={20} className="animate-spin" />
+                  Guardando...
+                </>
+              ) : (
+                <>
+                  <IconDeviceFloppy size={16} className="w-5 h-5" />
+                  Guardar plan completo
+                </>
+              )}
             </button>
           </div>
         )}

@@ -10,7 +10,44 @@ import { useProjectProgress } from '../hooks/useProjectProgress';
 
 // Constants removed, relying on state
 
+function CountUp({ end, duration = 800 }: { end: number; duration?: number }) {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) {
+      setCount(end);
+      return;
+    }
+
+    if (end <= 0) {
+      setCount(0);
+      return;
+    }
+
+    const stepTime = 30; // ms
+    const totalSteps = Math.max(Math.floor(duration / stepTime), 1);
+    let currentStep = 0;
+
+    const timer = setInterval(() => {
+      currentStep++;
+      if (currentStep >= totalSteps) {
+        setCount(end);
+        clearInterval(timer);
+      } else {
+        setCount(Math.floor((currentStep / totalSteps) * end));
+      }
+    }, stepTime);
+
+    return () => clearInterval(timer);
+  }, [end, duration]);
+
+  return <>{count}</>;
+}
+
 function MetricCard({ title, value, icon: Icon, color }: { title: string; value: string | number; icon: any; color: string }) {
+  const isNumeric = typeof value === 'number';
+
   return (
     <div className="metric-card p-6 flex items-center gap-4">
       <div className="p-3 rounded-lg" style={{ backgroundColor: color }}>
@@ -18,7 +55,9 @@ function MetricCard({ title, value, icon: Icon, color }: { title: string; value:
       </div>
       <div>
         <p className="text-sm text-gray-600">{title}</p>
-        <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>{value}</p>
+        <p className="text-2xl font-bold text-gray-900" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>
+          {isNumeric ? <CountUp end={value as number} /> : value}
+        </p>
       </div>
     </div>
   );
@@ -28,11 +67,17 @@ export function Dashboard() {
   const { activeProject } = useProject();
   const [isLoading, setIsLoading] = useState(false);
   const [metrics, setMetrics] = useState({ exitoPercent: '0%', tiempoPromo: '0 min', totalErrores: 0, hallazgosCrit: 0 });
+  const [visible, setVisible] = useState(false);
   const [taskData, setTaskData] = useState<any[]>([]);
   const [severityData, setSeverityData] = useState<any[]>([]);
   const [recentObservations, setRecentObservations] = useState<any[]>([]);
   const [criticalProblems, setCriticalProblems] = useState<any[]>([]);
   const { getSteps } = useProjectProgress(activeProject?.id);
+
+  useEffect(() => {
+    const t = setTimeout(() => setVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (activeProject) {
@@ -131,7 +176,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className={isLoading ? 'opacity-50' : ''}>
+    <div className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'} ${isLoading ? 'opacity-50' : ''}`}>
       <Breadcrumbs items={[
         { label: 'Proyectos' },
         { label: activeProject.nombre },
