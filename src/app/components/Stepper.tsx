@@ -50,11 +50,17 @@ export function Stepper({ steps }: StepperProps) {
               : currentIndex;
               
             const widthPercentage = (fillIndex / (steps.length - 1)) * 100;
+            const isFinalActive = currentIndex === 4;
             
             return (
               <div 
-                className="absolute left-[5%] top-6 h-[2px] bg-[var(--color-primary)] -z-10 transition-all duration-500 ease-in-out" 
-                style={{ width: `${widthPercentage * 0.9}%` }}
+                className="absolute left-[5%] top-6 h-[2px] -z-10 transition-all duration-500 ease-in-out" 
+                style={{ 
+                  width: `${widthPercentage * 0.9}%`,
+                  background: isFinalActive 
+                    ? 'linear-gradient(to right, var(--color-primary), var(--color-stepper-final-border))' 
+                    : 'var(--color-primary)' 
+                }}
               />
             );
           })()}
@@ -97,11 +103,13 @@ export function Stepper({ steps }: StepperProps) {
                   </div>
                 ) : isCurrent ? (
                   <div 
-                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-[3px] transition-all bg-[var(--color-bg-card)] shadow-lg ring-4 relative z-10"
+                    className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-[3px] transition-all bg-[var(--color-bg-card)] shadow-lg ring-4 relative z-10 ${step.id === 5 ? 'animate-pulse-gold ring-amber-500/20' : 'ring-blue-500/20'}`}
                     style={{ 
-                      borderColor: 'var(--color-primary)', 
-                      color: 'var(--color-primary)',
-                      boxShadow: '0 10px 30px rgba(45, 90, 158, 0.12)',
+                      borderColor: step.id === 5 ? 'var(--color-stepper-final-border)' : 'var(--color-primary)', 
+                      color: step.id === 5 ? 'var(--color-stepper-final-text)' : 'var(--color-primary)',
+                      boxShadow: step.id === 5 
+                        ? '0 10px 30px var(--color-stepper-final-glow)' 
+                        : '0 10px 30px rgba(45, 90, 158, 0.12)',
                       transition: 'all var(--transition-fast)'
                     }}
                   >
@@ -120,8 +128,9 @@ export function Stepper({ steps }: StepperProps) {
                 <div className="mt-4 text-center">
                   <p 
                     className={`text-sm font-bold transition-colors ${
-                      isCurrent ? 'text-[var(--color-primary)]' : 
-                      isCompleted ? 'text-[var(--color-text)]' : 
+                      isCurrent 
+                        ? (step.id === 5 ? 'text-[var(--color-stepper-final-text)] font-extrabold' : 'text-[var(--color-primary)]') 
+                        : isCompleted ? 'text-[var(--color-text)]' : 
                       'text-muted'
                     }`}
                     style={{ transition: 'color var(--transition-fast)' }}
@@ -132,16 +141,18 @@ export function Stepper({ steps }: StepperProps) {
                     <span 
                       className={`w-2 h-2 rounded-full transition-colors ${
                         isCompleted ? 'bg-[var(--color-success)]' : 
-                        isCurrent ? 'bg-[var(--color-primary)] animate-pulse' : 
-                        'bg-[var(--color-border)]'
+                        isCurrent 
+                          ? (step.id === 5 ? 'bg-[var(--color-stepper-final-border)] animate-pulse' : 'bg-[var(--color-primary)] animate-pulse') 
+                          : 'bg-[var(--color-border)]'
                       }`}
                       style={{ transition: 'background-color var(--transition-fast)' }}
                     />
                     <span 
                       className={`text-xs font-medium transition-colors ${
                         isCompleted ? 'text-[var(--color-success)]' : 
-                        isCurrent ? 'text-[var(--color-primary)]' : 
-                        'text-muted'
+                        isCurrent 
+                          ? (step.id === 5 ? 'text-[var(--color-stepper-final-text)] font-semibold' : 'text-[var(--color-primary)]') 
+                          : 'text-muted'
                       }`}
                       style={{ transition: 'color var(--transition-fast)' }}
                     >

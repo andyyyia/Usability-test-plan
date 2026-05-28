@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { IconAlertTriangle, IconPencil, IconX, IconCheck, IconCircleCheck, IconTrash, IconDeviceFloppy, IconBell, IconPlus, IconLoader2 } from '@tabler/icons-react';
+import { IconAlertTriangle, IconPencil, IconX, IconCheck, IconCircleCheck, IconTrash, IconDeviceFloppy, IconBell, IconPlus, IconLoader2, IconChevronDown, IconClock, IconRefresh } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
@@ -29,10 +29,18 @@ export function Hallazgos() {
   const [errors, setErrors] = useState<{ index: number; field: string }[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
+  const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({});
   const [confirmDelete, setConfirmDelete] = useState<{ open: boolean; index: number }>({ open: false, index: -1 });
   const [confirmDiscardChanges, setConfirmDiscardChanges] = useState(false);
   const [visible, setVisible] = useState(false);
   const { getSteps, reloadProgress } = useProjectProgress(activeProject?.id);
+
+  const toggleRow = (index: number) => {
+    setExpandedRows(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 50);
@@ -215,9 +223,38 @@ export function Hallazgos() {
       case 'En progreso':
         return 'bg-[var(--color-primary-light)] text-[var(--color-primary)] border border-[var(--color-primary-light)]';
       case 'Pendiente':
-        return 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] border border-[var(--color-border)]';
+        return 'bg-[var(--color-warning-light)] text-[var(--color-warning)] border border-[var(--color-warning-light)]';
       default:
         return 'bg-card text-body border border-default';
+    }
+  };
+
+  const getStatusBadgeContent = (status: string) => {
+    switch (status) {
+      case 'Resuelto':
+        return {
+          label: 'Resuelto',
+          icon: <IconCircleCheck className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[var(--color-success-light)] text-[var(--color-success)] border border-[var(--color-success-light)]'
+        };
+      case 'En progreso':
+        return {
+          label: 'En progreso',
+          icon: <IconRefresh className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[var(--color-primary-light)] text-[var(--color-primary)] border border-[var(--color-primary-light)]'
+        };
+      case 'Pendiente':
+        return {
+          label: 'Pendiente',
+          icon: <IconClock className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[var(--color-warning-light)] text-[var(--color-warning)] border border-[var(--color-warning-light)]'
+        };
+      default:
+        return {
+          label: 'Sin estado',
+          icon: null,
+          className: 'bg-card text-body border border-default'
+        };
     }
   };
 
@@ -310,172 +347,253 @@ export function Hallazgos() {
 
       {isEditing && (
         <div className="mb-4 edit-mode-banner" role="status" aria-live="polite">
-          Modo de edicion activado
+          Modo de edición activado
         </div>
       )}
 
       <Card title="Hallazgos y recomendaciones">
-        <div className="design-table-container overflow-x-auto pb-4">
+        <div className="design-table-container">
           <table className="design-table" aria-describedby="hallazgos-caption">
             <caption id="hallazgos-caption" className="sr-only">Tabla de hallazgos y recomendaciones</caption>
             <thead>
               <tr>
-                <th scope="col" className="w-[200px]">
+                <th scope="col">
                   Problema
                 </th>
                 <th scope="col">
                   Evidencia observada
                 </th>
-                <th scope="col" className="w-[100px]">
+                <th scope="col">
                   Frecuencia
                 </th>
-                <th scope="col" className="w-[120px]">
+                <th scope="col">
                   Severidad
                 </th>
                 <th scope="col">
                   Recomendación
                 </th>
-                <th scope="col" className="w-[120px]">
+                <th scope="col">
                   Prioridad
                 </th>
-                <th scope="col" className="w-[130px]">
+                <th scope="col" style={{ minWidth: '120px' }}>
                   Estado
                 </th>
-                <th scope="col" className="text-center w-16">
-                  Acción
-                </th>
+                {isEditing && (
+                  <th scope="col" className="text-center" style={{ width: '48px' }}>
+                    Acción
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
-               {findings.map((finding, index) => (
-                <tr key={index} className={getSeverityRowColor(finding.severidad)}>
-                  <td>
-                    <textarea
-                      id={`fnd-${index}-problema`}
-                      value={finding.problema}
-                      onChange={(e) => handleChange(index, 'problema', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${finding.problema ? 'is-filled' : ''}`}
-                      placeholder="Describe el problema..."
-                      rows={2}
-                      aria-label={`Problema hallazgo ${index + 1}`}
-                    />
-                    {isEditing && isInsufficientInfo(finding.problema) && (
-                      <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
-                    )}
-                  </td>
-                  <td>
-                    <textarea
-                      id={`fnd-${index}-evidencia`}
-                      value={finding.evidencia}
-                      onChange={(e) => handleChange(index, 'evidencia', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'evidencia') ? 'is-error' : ''} ${finding.evidencia ? 'is-filled' : ''}`}
-                      rows={2}
-                      placeholder="Qué se observó..."
-                      aria-label={`Evidencia hallazgo ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    <input
-                      id={`fnd-${index}-frecuencia`}
-                      type="text"
-                      value={finding.frecuencia}
-                      onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'frecuencia') ? 'is-error' : ''} ${finding.frecuencia ? 'is-filled' : ''}`}
-                      placeholder="4/5"
-                      aria-label={`Frecuencia hallazgo ${index + 1}`}
-                    />
-                  </td>
-                  <td>
-                    {isEditing ? (
-                      <select
-                        id={`fnd-${index}-severidad`}
-                        value={finding.severidad}
-                        onChange={(e) => handleChange(index, 'severidad', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${finding.severidad ? 'is-filled' : ''}`}
-                        style={{ transition: 'background-color 200ms ease, color 200ms ease, border-color var(--transition-fast)' }}
-                        aria-label={`Severidad hallazgo ${index + 1}`}
-                      >
-                        <option value="">Seleccionar...</option>
-                        <option value="Alta" className="option-alta">Alta</option>
-                        <option value="Media" className="option-media">Media</option>
-                        <option value="Baja" className="option-baja">Baja</option>
-                      </select>
-                    ) : (
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${getSeverityBadgeContent(finding.severidad).className}`}>
-                        {getSeverityBadgeContent(finding.severidad).icon}
-                        {getSeverityBadgeContent(finding.severidad).label}
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <textarea
-                      id={`fnd-${index}-recomendacion`}
-                      value={finding.recomendacion}
-                      onChange={(e) => handleChange(index, 'recomendacion', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'recomendacion') ? 'is-error' : ''} ${finding.recomendacion ? 'is-filled' : ''}`}
-                      rows={2}
-                      placeholder="Solución propuesta..."
-                      aria-label={`Recomendación hallazgo ${index + 1}`}
-                    />
-                    {isEditing && isInsufficientInfo(finding.recomendacion) && (
-                      <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
-                    )}
-                  </td>
-                  <td>
-                    <select
-                      id={`fnd-${index}-prioridad`}
-                      value={finding.prioridad}
-                      onChange={(e) => handleChange(index, 'prioridad', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getPriorityColor(finding.prioridad)} ${errors.some(e => e.index === index && e.field === 'prioridad') ? 'is-error' : ''} ${finding.prioridad ? 'is-filled' : ''}`}
-                      aria-label={`Prioridad hallazgo ${index + 1}`}
+               {findings.map((finding, index) => {
+                 const isExpanded = !!expandedRows[index];
+
+                 return (
+                 <React.Fragment key={index}>
+                    <tr 
+                      className={`${getSeverityRowColor(finding.severidad)} cursor-pointer`}
+                      onClick={(e) => {
+                        const tagName = (e.target as HTMLElement).tagName.toLowerCase();
+                        if (['input', 'select', 'textarea', 'button', 'path', 'svg'].includes(tagName)) {
+                          return;
+                        }
+                        toggleRow(index);
+                      }}
                     >
-                      <option value="">Seleccionar...</option>
-                      <option value="Alta">Alta</option>
-                      <option value="Media">Media</option>
-                      <option value="Baja">Baja</option>
-                    </select>
-                  </td>
-                  <td>
-                    <select
-                      id={`fnd-${index}-estado`}
-                      value={finding.estado}
-                      onChange={(e) => handleChange(index, 'estado', e.target.value)}
-                      disabled={!isEditing}
-                      className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getStatusColor(finding.estado)} ${errors.some(e => e.index === index && e.field === 'estado') ? 'is-error' : ''} ${finding.estado ? 'is-filled' : ''}`}
-                      aria-label={`Estado hallazgo ${index + 1}`}
-                    >
-                      <option value="">Seleccionar...</option>
-                      <option value="Pendiente">Pendiente</option>
-                      <option value="En progreso">En progreso</option>
-                      <option value="Resuelto">Resuelto</option>
-                    </select>
-                  </td>
-                  <td>
-                    {isEditing && (
-                      <button
-                        onClick={() => removeFinding(index)}
-                        className="inline-flex items-center justify-center rounded-md border border-red-300 p-2 text-red-700 hover:bg-red-50 hover:border-red-400 transition-colors"
-                        title={`Eliminar hallazgo ${index + 1}`}
-                        aria-label={`Eliminar hallazgo ${index + 1}`}
-                      >
-                        <IconTrash size={16} className="w-4 h-4" />
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleRow(index);
+                            }}
+                            className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                            style={{
+                              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform 250ms ease'
+                            }}
+                            aria-label="Expandir detalles"
+                          >
+                            <IconChevronDown size={13} className="text-gray-500" />
+                          </button>
+                          <textarea
+                            id={`fnd-${index}-problema`}
+                            value={finding.problema}
+                            onChange={(e) => handleChange(index, 'problema', e.target.value)}
+                            disabled={!isEditing}
+                            className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${finding.problema ? 'is-filled' : ''}`}
+                            placeholder="Describe el problema..."
+                            rows={2}
+                            aria-label={`Problema hallazgo ${index + 1}`}
+                          />
+                        </div>
+                        {isEditing && isInsufficientInfo(finding.problema) && (
+                          <span className="mt-1 block text-xs font-medium text-red-700">Informacion insuficiente</span>
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <textarea
+                            id={`fnd-${index}-evidencia`}
+                            value={finding.evidencia}
+                            onChange={(e) => handleChange(index, 'evidencia', e.target.value)}
+                            className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'evidencia') ? 'is-error' : ''} ${finding.evidencia ? 'is-filled' : ''}`}
+                            placeholder="Qué se observó..."
+                            rows={2}
+                            aria-label={`Evidencia hallazgo ${index + 1}`}
+                          />
+                        ) : (
+                          <span className="table-cell-truncate" title={finding.evidencia}>{finding.evidencia || '—'}</span>
+                        )}
+                      </td>
+                      <td>
+                        <input
+                          id={`fnd-${index}-frecuencia`}
+                          type="text"
+                          value={finding.frecuencia}
+                          onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
+                          disabled={!isEditing}
+                          className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'frecuencia') ? 'is-error' : ''} ${finding.frecuencia ? 'is-filled' : ''}`}
+                          placeholder="4/5"
+                          aria-label={`Frecuencia hallazgo ${index + 1}`}
+                        />
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <select
+                            id={`fnd-${index}-severidad`}
+                            value={finding.severidad}
+                            onChange={(e) => handleChange(index, 'severidad', e.target.value)}
+                            disabled={!isEditing}
+                            className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(finding.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${finding.severidad ? 'is-filled' : ''}`}
+                            style={{ transition: 'background-color 200ms ease, color 200ms ease, border-color var(--transition-fast)' }}
+                            aria-label={`Severidad hallazgo ${index + 1}`}
+                          >
+                            <option value="">Seleccionar...</option>
+                            <option value="Alta" className="option-alta">Alta</option>
+                            <option value="Media" className="option-media">Media</option>
+                            <option value="Baja" className="option-baja">Baja</option>
+                          </select>
+                        ) : (
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${getSeverityBadgeContent(finding.severidad).className}`}>
+                            {getSeverityBadgeContent(finding.severidad).icon}
+                            {getSeverityBadgeContent(finding.severidad).label}
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <textarea
+                            id={`fnd-${index}-recomendacion`}
+                            value={finding.recomendacion}
+                            onChange={(e) => handleChange(index, 'recomendacion', e.target.value)}
+                            className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'recomendacion') ? 'is-error' : ''} ${finding.recomendacion ? 'is-filled' : ''}`}
+                            placeholder="Solución propuesta..."
+                            rows={2}
+                            aria-label={`Recomendación hallazgo ${index + 1}`}
+                          />
+                        ) : (
+                          <span className="table-cell-truncate" title={finding.recomendacion}>{finding.recomendacion || '—'}</span>
+                        )}
+                      </td>
+                      <td>
+                        <select
+                          id={`fnd-${index}-prioridad`}
+                          value={finding.prioridad}
+                          onChange={(e) => handleChange(index, 'prioridad', e.target.value)}
+                          disabled={!isEditing}
+                          className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getPriorityColor(finding.prioridad)} ${errors.some(e => e.index === index && e.field === 'prioridad') ? 'is-error' : ''} ${finding.prioridad ? 'is-filled' : ''}`}
+                          aria-label={`Prioridad hallazgo ${index + 1}`}
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="Alta">Alta</option>
+                          <option value="Media">Media</option>
+                          <option value="Baja">Baja</option>
+                        </select>
+                      </td>
+                      <td>
+                        {isEditing ? (
+                          <select
+                            id={`fnd-${index}-estado`}
+                            value={finding.estado}
+                            onChange={(e) => handleChange(index, 'estado', e.target.value)}
+                            className={`form-input w-full px-2 py-1 text-sm font-semibold ${getStatusColor(finding.estado)} ${errors.some(e => e.index === index && e.field === 'estado') ? 'is-error' : ''} ${finding.estado ? 'is-filled' : ''}`}
+                            aria-label={`Estado hallazgo ${index + 1}`}
+                          >
+                            <option value="">Seleccionar...</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En progreso">En progreso</option>
+                            <option value="Resuelto">Resuelto</option>
+                          </select>
+                        ) : (
+                          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${getStatusBadgeContent(finding.estado).className}`}>
+                            {getStatusBadgeContent(finding.estado).icon}
+                            {getStatusBadgeContent(finding.estado).label}
+                          </span>
+                        )}
+                      </td>
+                      {isEditing && (
+                        <td className="text-center">
+                          <button
+                            onClick={() => removeFinding(index)}
+                            className="btn-danger-icon"
+                            title={`Eliminar hallazgo ${index + 1}`}
+                            aria-label={`Eliminar hallazgo ${index + 1}`}
+                          >
+                            <IconTrash size={15} />
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+ 
+                    {/* Expandable detail row */}
+                    <tr className={isExpanded ? 'bg-blue-50/10' : 'hidden'}>
+                      <td colSpan={isEditing ? 8 : 7} className="p-0 border-none">
+                        <div 
+                          className="overflow-hidden"
+                          style={{
+                            maxHeight: isExpanded ? '600px' : '0px',
+                            opacity: isExpanded ? 1 : 0,
+                            transition: 'max-height 250ms ease-in-out, opacity 250ms ease-in-out'
+                          }}
+                        >
+                          <div className="obs-detail">
+                            <h4 className="obs-detail-title">Detalles — {finding.problema ? finding.problema.slice(0, 60) + (finding.problema.length > 60 ? '...' : '') : `Hallazgo ${index + 1}`}</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mt-3 border-t pt-3 border-[var(--color-border)]">
+                              <div className="space-y-2">
+                                <p className="whitespace-pre-wrap"><span className="font-semibold text-body">Problema:</span><br />{finding.problema || 'Sin registrar'}</p>
+                              </div>
+                              <div className="space-y-2">
+                                <p className="whitespace-pre-wrap"><span className="font-semibold text-body">Evidencia observada:</span><br />{finding.evidencia || 'Sin registrar'}</p>
+                                <p><span className="font-semibold text-body">Frecuencia:</span> {finding.frecuencia || 'Sin registrar'}</p>
+                                <p><span className="font-semibold text-body">Severidad:</span> {finding.severidad || 'Sin registrar'}</p>
+                              </div>
+                              <div className="space-y-2">
+                                <p className="whitespace-pre-wrap"><span className="font-semibold text-body">Recomendación:</span><br />{finding.recomendacion || 'Sin registrar'}</p>
+                                <p><span className="font-semibold text-body">Prioridad:</span> {finding.prioridad || 'Sin registrar'}</p>
+                                <p><span className="font-semibold text-body">Estado:</span> {finding.estado || 'Sin registrar'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                 </React.Fragment>
+                 );
+               })}
             </tbody>
           </table>
         </div>
 
-        <div className="mt-4">
-            {isEditing && (
+        <div className="mt-4 flex items-center justify-between">
+          <div className="text-sm text-gray-600">
+            {findings.length === 0 ? 'No hay hallazgos' : 
+             findings.length === 1 ? '1 hallazgo registrado' : 
+             `${findings.length} hallazgos registrados`}
+          </div>
+          {isEditing && (
             <button
               onClick={addFinding}
               className="btn-outline-primary"

@@ -1,10 +1,11 @@
 /* WCAG AA verificado:
-   Texto principal (#0F172A) sobre fondo (#F8FAFC): ratio 18.2:1 ✓ AAA
-   Texto sidebar (white) sobre sidebar (#1e3a5f): ratio 12.0:1 ✓ AAA
+   Texto principal (#0F172A) sobre fondo (#F8FAFC): ratio 16.9:1 ✓ AAA
+   Texto sidebar (white) sobre sidebar (#1e3a5f): ratio 11.4:1 ✓ AAA
    Badge Alta (#991B1B) sobre (#FEE2E2): ratio 5.2:1 ✓ AA
 */
 
 :root {
+  color-scheme: light;
   /* TIPOGRAFÍA */
   --font-title: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
@@ -91,20 +92,87 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 400ms ease;
+
+  /* BADGES CON ALTO CONTRASTE (WCAG AA) */
+  --color-badge-alta-text: #991B1B;
+  --color-badge-alta-bg: #FEE2E2;
+  --color-badge-media-text: #92400E;
+  --color-badge-media-bg: #FEF3C7;
+  --color-badge-baja-text: #166534;
+  --color-badge-baja-bg: #DCFCE7;
+
+  /* STEPPER FASE FINAL */
+  --color-stepper-final-text: #B45309;
+  --color-stepper-final-border: #F59E0B;
+  --color-stepper-final-glow: rgba(245, 158, 11, 0.2);
+
+  /* BOTONES DE ALTO CONTRASTE (WCAG AA) */
+  --color-btn-primary-bg: var(--color-sidebar);
+  --color-btn-primary-text: var(--color-text-inverse);
+  --color-btn-primary-hover: var(--color-primary-hover);
+  --color-btn-outline-text: var(--color-primary);
+  --color-btn-outline-border: var(--color-primary);
+  --color-btn-outline-hover-bg: var(--color-primary-light);
+  --color-btn-danger-bg: #DC2626;
+  --color-btn-danger-text: #ffffff;
+  --color-btn-danger-hover: #B91C1C;
+
+  /* BARRAS DE DESPLAZAMIENTO (SCROLLBARS) */
+  --color-scrollbar-track: #F1F5F9;
+  --color-scrollbar-thumb: #94A3B8;
+  --color-scrollbar-thumb-hover: #475569;
 }
 
 body.dark {
+  color-scheme: dark;
   --color-bg: #0B1120;
   --color-bg-card: #1E293B;
   --color-bg-secondary: #111827;
-  --color-border: #1E293B;
-  --color-border-strong: #334155;
+  --color-border: #475569;
+  --color-border-strong: #64748B;
   --color-text: #F1F5F9;
   --color-text-secondary: #CBD5E1;
   --color-text-muted: #94A3B8;
   --color-primary-light: rgba(45, 90, 158, 0.18);
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+
+  /* BARRAS DE DESPLAZAMIENTO (SCROLLBARS) */
+  --color-scrollbar-track: #111827;
+  --color-scrollbar-thumb: #475569;
+  --color-scrollbar-thumb-hover: #94A3B8;
+
+  /* BADGES EN MODO OSCURO (CONTRASTE >= 4.5:1) */
+  --color-badge-alta-text: #FECACA;
+  --color-badge-alta-bg: #7F1D1D;
+  --color-badge-media-text: #FDE68A;
+  --color-badge-media-bg: #78350F;
+  --color-badge-baja-text: #A7F3D0;
+  --color-badge-baja-bg: #064E3B;
+
+  /* STEPPER FASE FINAL */
+  --color-stepper-final-text: #FBBF24;
+  --color-stepper-final-border: #FBBF24;
+  --color-stepper-final-glow: rgba(245, 158, 11, 0.45);
+
+  /* BOTONES EN MODO OSCURO (CONTRASTE >= 4.5:1) */
+  --color-btn-primary-bg: #2563EB;
+  --color-btn-primary-text: #ffffff;
+  --color-btn-primary-hover: #1D4ED8;
+  --color-btn-outline-text: #60A5FA;
+  --color-btn-outline-border: rgba(96, 165, 250, 0.24);
+  --color-btn-outline-hover-bg: rgba(96, 165, 250, 0.12);
+  --color-btn-danger-bg: #DC2626;
+  --color-btn-danger-text: #ffffff;
+  --color-btn-danger-hover: #B91C1C;
+
+  /* ERROR / DANGER SEMANTIC TOKENS EN MODO OSCURO */
+  --color-error: #F87171;
+  --color-error-light: rgba(127, 29, 29, 0.35);
+
+  /* WARNING SEMANTIC TOKENS EN MODO OSCURO */
+  --color-warning: #FBBF24;
+  --color-warning-light: rgba(120, 53, 15, 0.35);
 }
 
 body,

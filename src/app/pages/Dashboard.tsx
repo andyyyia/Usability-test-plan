@@ -233,7 +233,16 @@ export function Dashboard() {
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="task" />
                     <YAxis />
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--color-bg-card)',
+                        borderColor: 'var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                        color: 'var(--color-text)',
+                      }}
+                      itemStyle={{ color: 'var(--color-text)' }}
+                      labelStyle={{ color: 'var(--color-text-secondary)', fontWeight: 'bold' }}
+                    />
                     <Legend />
                     <Bar dataKey="errores" fill="var(--color-primary)" name={"Errores detectados"} />
                   </BarChart>
@@ -274,7 +283,16 @@ export function Dashboard() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--color-bg-card)',
+                        borderColor: 'var(--color-border)',
+                        borderRadius: 'var(--radius-md)',
+                        color: 'var(--color-text)',
+                      }}
+                      itemStyle={{ color: 'var(--color-text)' }}
+                      labelStyle={{ color: 'var(--color-text-secondary)', fontWeight: 'bold' }}
+                    />
                     <Legend verticalAlign="bottom" height={36}/>
                   </PieChart>
                 </ResponsiveContainer>

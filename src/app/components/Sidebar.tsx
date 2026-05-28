@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router';
-import { IconLayoutDashboard, IconClipboardList, IconListCheck, IconEye, IconChartBar, IconFolderPlus, IconFolder, IconPencil, IconTrash, IconX, IconDotsVertical } from '@tabler/icons-react';
+import { IconLayoutDashboard, IconClipboardList, IconListCheck, IconEye, IconChartBar, IconFolderPlus, IconFolder, IconPencil, IconTrash, IconX, IconDotsVertical, IconPalette } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -281,6 +281,24 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: { isMobileOpen: boolean
               </li>
             );
           })}
+          
+          <li className="border-t border-blue-900/50 my-4" role="separator" />
+
+          <li>
+            <NavLink
+              to="/guia"
+              onClick={onCloseMobile}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 sidebar-link ${isActive
+                  ? 'sidebar-link-active'
+                  : ''
+                }`
+              }
+            >
+              <IconPalette aria-hidden="true" size={18} className="flex-shrink-0" />
+              <span className="font-medium sidebar-text" style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-base)', fontWeight: 'var(--weight-medium)' }}>Guía de diseño</span>
+            </NavLink>
+          </li>
         </ul>
       </nav>
 

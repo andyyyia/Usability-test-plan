@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2, IconChevronDown } from '@tabler/icons-react';
+import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2, IconChevronDown, IconBell, IconAlertTriangle, IconCircleCheck } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
 import { toast } from 'sonner';
@@ -219,6 +219,35 @@ export function Observaciones() {
     }
   };
 
+  const getSeverityBadgeContent = (severity: string) => {
+    switch (severity) {
+      case 'Alta':
+        return {
+          label: 'ALTA',
+          icon: <IconBell className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[var(--color-error-light)] text-[var(--color-error)] border border-[var(--color-error-light)]'
+        };
+      case 'Media':
+        return {
+          label: 'MEDIA',
+          icon: <IconAlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[var(--color-warning-light)] text-[var(--color-warning)] border border-[var(--color-warning-light)]'
+        };
+      case 'Baja':
+        return {
+          label: 'BAJA',
+          icon: <IconCircleCheck className="w-3.5 h-3.5" aria-hidden="true" />,
+          className: 'bg-[var(--color-success-light)] text-[var(--color-success)] border border-[var(--color-success-light)]'
+        };
+      default:
+        return {
+          label: 'Sin severidad',
+          icon: null,
+          className: 'bg-card text-body border border-default'
+        };
+    }
+  };
+
   const getSeverityRowColor = (severity: string) => {
     switch (severity) {
       case 'Alta':
@@ -264,7 +293,7 @@ export function Observaciones() {
         {!isEditing && (
           <button
             onClick={handleEdit}
-            className="btn-primary"
+            className="btn-editar"
             aria-label="Editar observaciones"
           >
             <IconPencil size={16} className="w-4 h-4" />
@@ -275,8 +304,14 @@ export function Observaciones() {
 
       <Stepper steps={getSteps()} />
 
+      {isEditing && (
+        <div className="mb-4 edit-mode-banner" role="status" aria-live="polite">
+          Modo de edición activado
+        </div>
+      )}
+
       <Card title="Observaciones del test">
-        <div className="design-table-container overflow-x-auto pb-4">
+        <div className="design-table-container">
           <table className="design-table" aria-describedby="observaciones-caption">
             <caption id="observaciones-caption" className="sr-only">Tabla de observaciones detalladas del test</caption>
             <thead>
@@ -311,9 +346,11 @@ export function Observaciones() {
                 <th scope="col">
                   Mejora propuesta
                 </th>
-                <th scope="col" className="text-center w-32">
-                  Acción
-                </th>
+                {isEditing && (
+                  <th scope="col" className="text-center" style={{ width: '48px' }}>
+                    Acción
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -334,21 +371,21 @@ export function Observaciones() {
                     }}
                   >
                     <td>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleRow(index);
                           }}
-                          className="p-1 hover:bg-gray-100 rounded transition-transform duration-250 flex-shrink-0"
+                          className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                           style={{
                             transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
                             transition: 'transform 250ms ease'
                           }}
                           aria-label="Expandir detalles"
                         >
-                          <IconChevronDown size={14} className="text-gray-500" />
+                          <IconChevronDown size={13} className="text-gray-500" />
                         </button>
                         <input
                           id={`obs-${index}-participante`}
@@ -410,7 +447,7 @@ export function Observaciones() {
                         value={obs.tiempo}
                         onChange={(e) => handleChange(index, 'tiempo', e.target.value)}
                         disabled={!isEditing}
-                        className={`form-input w-full min-w-[80px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'is-error' : ''} ${obs.tiempo ? 'is-filled' : ''}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'tiempo') ? 'is-error' : ''} ${obs.tiempo ? 'is-filled' : ''}`}
                         placeholder="120"
                         aria-label={`Tiempo fila ${index + 1}`}
                       />
@@ -424,107 +461,123 @@ export function Observaciones() {
                         value={obs.errores}
                         onChange={(e) => handleChange(index, 'errores', e.target.value)}
                         disabled={!isEditing}
-                        className={`form-input w-full min-w-[70px] px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'is-error' : ''} ${obs.errores ? 'is-filled' : ''}`}
+                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'errores') ? 'is-error' : ''} ${obs.errores ? 'is-filled' : ''}`}
                         placeholder="2"
                         aria-label={`Errores fila ${index + 1}`}
                       />
                     </td>
                     <td>
-                      <textarea
-                        id={`obs-${index}-comentarios`}
-                        value={obs.comentarios}
-                        onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'is-error' : ''} ${obs.comentarios ? 'is-filled' : ''}`}
-                        placeholder="Comentarios..."
-                        rows={2}
-                        aria-label={`Comentarios fila ${index + 1}`}
-                      />
-                    </td>
-                    <td>
-                      <textarea
-                        id={`obs-${index}-problema`}
-                        value={obs.problema}
-                        onChange={(e) => handleChange(index, 'problema', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${obs.problema ? 'is-filled' : ''}`}
-                        placeholder="Problema..."
-                        rows={2}
-                        aria-label={`Problema fila ${index + 1}`}
-                      />
-                    </td>
-                    <td>
-                      <select
-                        id={`obs-${index}-severidad`}
-                        value={obs.severidad}
-                        onChange={(e) => handleChange(index, 'severidad', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm font-semibold ${!isEditing ? 'is-disabled' : ''} ${getSeverityColor(obs.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${obs.severidad ? 'is-filled' : ''}`}
-                        style={{ transition: 'background-color 200ms ease, color 200ms ease, border-color var(--transition-fast)' }}
-                        aria-label={`Severidad fila ${index + 1}`}
-                      >
-                        <option value="">Seleccionar...</option>
-                        <option value="Alta" className="option-alta">Alta</option>
-                        <option value="Media" className="option-media">Media</option>
-                        <option value="Baja" className="option-baja">Baja</option>
-                      </select>
-                    </td>
-                    <td>
-                      <textarea
-                        id={`obs-${index}-mejora`}
-                        value={obs.mejora}
-                        onChange={(e) => handleChange(index, 'mejora', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'mejora') ? 'is-error' : ''} ${obs.mejora ? 'is-filled' : ''}`}
-                        placeholder="Mejora..."
-                        rows={2}
-                        aria-label={`Mejora fila ${index + 1}`}
-                      />
-                    </td>
-                    <td>
-                      {isEditing && (
-                        <button
-                          onClick={() => deleteObservation(index)}
-                          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                          aria-label={`Eliminar observación ${index + 1}`}
-                        >
-                          <IconTrash size={16} className="w-4 h-4" />
-                          Eliminar
-                        </button>
+                      {isEditing ? (
+                        <textarea
+                          id={`obs-${index}-comentarios`}
+                          value={obs.comentarios}
+                          onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
+                          className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'is-error' : ''} ${obs.comentarios ? 'is-filled' : ''}`}
+                          placeholder="Comentarios..."
+                          rows={2}
+                          aria-label={`Comentarios fila ${index + 1}`}
+                        />
+                      ) : (
+                        <span className="table-cell-truncate" title={obs.comentarios}>{obs.comentarios || '—'}</span>
                       )}
                     </td>
+                    <td>
+                      {isEditing ? (
+                        <textarea
+                          id={`obs-${index}-problema`}
+                          value={obs.problema}
+                          onChange={(e) => handleChange(index, 'problema', e.target.value)}
+                          className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${obs.problema ? 'is-filled' : ''}`}
+                          placeholder="Problema..."
+                          rows={2}
+                          aria-label={`Problema fila ${index + 1}`}
+                        />
+                      ) : (
+                        <span className="table-cell-truncate" title={obs.problema}>{obs.problema || '—'}</span>
+                      )}
+                    </td>
+                    <td>
+                      {isEditing ? (
+                        <select
+                          id={`obs-${index}-severidad`}
+                          value={obs.severidad}
+                          onChange={(e) => handleChange(index, 'severidad', e.target.value)}
+                          className={`form-input w-full px-2 py-1 text-sm font-semibold ${getSeverityColor(obs.severidad)} ${errors.some(e => e.index === index && e.field === 'severidad') ? 'is-error' : ''} ${obs.severidad ? 'is-filled' : ''}`}
+                          style={{ transition: 'background-color 200ms ease, color 200ms ease' }}
+                          aria-label={`Severidad fila ${index + 1}`}
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="Alta">Alta</option>
+                          <option value="Media">Media</option>
+                          <option value="Baja">Baja</option>
+                        </select>
+                      ) : (
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tracking-wide ${getSeverityBadgeContent(obs.severidad).className}`}>
+                          {getSeverityBadgeContent(obs.severidad).icon}
+                          {getSeverityBadgeContent(obs.severidad).label}
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      {isEditing ? (
+                        <textarea
+                          id={`obs-${index}-mejora`}
+                          value={obs.mejora}
+                          onChange={(e) => handleChange(index, 'mejora', e.target.value)}
+                          className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'mejora') ? 'is-error' : ''} ${obs.mejora ? 'is-filled' : ''}`}
+                          placeholder="Mejora..."
+                          rows={2}
+                          aria-label={`Mejora fila ${index + 1}`}
+                        />
+                      ) : (
+                        <span className="table-cell-truncate" title={obs.mejora}>{obs.mejora || '—'}</span>
+                      )}
+                    </td>
+                    {isEditing && (
+                      <td className="text-center">
+                        <button
+                          onClick={() => deleteObservation(index)}
+                          className="btn-danger-icon"
+                          aria-label={`Eliminar observación ${index + 1}`}
+                          title="Eliminar observación"
+                        >
+                          <IconTrash size={15} />
+                        </button>
+                      </td>
+                    )}
                   </tr>
                   
                   {/* Expandable detail row */}
                   <tr className={isExpanded ? 'bg-blue-50/10' : 'hidden'}>
-                    <td colSpan={11} className="p-0 border-none">
+                    <td colSpan={isEditing ? 11 : 10} className="p-0 border-none">
                       <div 
-                        className="overflow-hidden transition-all duration-[250ms] ease-in-out"
+                        className="overflow-hidden"
                         style={{
-                          maxHeight: isExpanded ? '300px' : '0px',
+                          maxHeight: isExpanded ? '600px' : '0px',
                           opacity: isExpanded ? 1 : 0,
                           transition: 'max-height 250ms ease-in-out, opacity 250ms ease-in-out'
                         }}
                       >
                         <div className="obs-detail">
-                          <p className="font-semibold text-[var(--color-primary)]">Detalles de la observación del Participante {index + 1}:</p>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2">
-                            <p><span className="font-semibold text-body">Perfil:</span> {obs.perfil || 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-body">Tarea:</span> {obs.tarea || 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-body">Éxito:</span> {obs.exito || 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-body">Tiempo:</span> {obs.tiempo ? `${obs.tiempo} seg` : 'Sin registrar'}</p>
-                            <p><span className="font-semibold text-body">Errores:</span> {obs.errores || 0}</p>
-                            <p><span className="font-semibold text-body">Severidad:</span> {obs.severidad || 'Sin registrar'}</p>
+                          <h4 className="obs-detail-title">Detalles — {obs.participante || `Participante ${index + 1}`}</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm mt-3 border-t pt-3 border-[var(--color-border)]">
+                            <div className="space-y-2">
+                              <p><span className="font-semibold text-body">Participante:</span> {obs.participante || 'Sin registrar'}</p>
+                              <p><span className="font-semibold text-body">Perfil:</span> {obs.perfil || 'Sin registrar'}</p>
+                              <p><span className="font-semibold text-body">Tarea:</span> {obs.tarea || 'Sin registrar'}</p>
+                              <p><span className="font-semibold text-body">Éxito:</span> {obs.exito || 'Sin registrar'}</p>
+                              <p><span className="font-semibold text-body">Tiempo:</span> {obs.tiempo ? `${obs.tiempo} seg` : 'Sin registrar'}</p>
+                              <p><span className="font-semibold text-body">Errores:</span> {obs.errores !== '' ? obs.errores : 'Sin registrar'}</p>
+                            </div>
+                            <div className="space-y-2">
+                              <p><span className="font-semibold text-body">Severidad:</span> {obs.severidad || 'Sin registrar'}</p>
+                              <p className="whitespace-pre-wrap"><span className="font-semibold text-body">Comentarios clave:</span><br />{obs.comentarios || 'Sin registrar'}</p>
+                            </div>
+                            <div className="space-y-2">
+                              <p className="whitespace-pre-wrap"><span className="font-semibold text-body">Problema detectado:</span><br />{obs.problema || 'Sin registrar'}</p>
+                              <p className="whitespace-pre-wrap"><span className="font-semibold text-body">Mejora propuesta:</span><br />{obs.mejora || 'Sin registrar'}</p>
+                            </div>
                           </div>
-                          {obs.comentarios && (
-                            <p className="mt-1"><span className="font-semibold text-body">Comentarios clave:</span> {obs.comentarios}</p>
-                          )}
-                          {obs.problema && (
-                            <p className="mt-1"><span className="font-semibold text-body">Problema detectado:</span> {obs.problema}</p>
-                          )}
-                          {obs.mejora && (
-                            <p className="mt-1"><span className="font-semibold text-body">Mejora propuesta:</span> {obs.mejora}</p>
-                          )}
                         </div>
                       </div>
                     </td>
@@ -538,7 +591,9 @@ export function Observaciones() {
 
         <div className="mt-4 flex items-center justify-between">
           <div className="text-sm text-gray-600">
-            Mostrando {observations.length === 0 ? 0 : indexOfFirstItem + 1} a {Math.min(indexOfLastItem, observations.length)} de {observations.length} registros
+            {observations.length === 0 ? 'No hay observaciones' : 
+             observations.length === 1 ? '1 observación registrada' : 
+             `Mostrando ${indexOfFirstItem + 1} a ${Math.min(indexOfLastItem, observations.length)} de ${observations.length} observaciones`}
           </div>
           {totalPages > 1 && (
             <div className="flex gap-2">

@@ -336,6 +336,12 @@ export function PlanDePrueba() {
 
       <Stepper steps={getSteps()} />
 
+      {isEditing && (
+        <div className="mb-4 edit-mode-banner" role="status" aria-live="polite">
+          Modo de edición activado
+        </div>
+      )}
+
         <div className="space-y-6">
           <Card title="Contexto general">
             <div>
@@ -461,38 +467,53 @@ export function PlanDePrueba() {
 
           {/* Card 2: Tareas del test */}
           <Card title="Tareas del test">
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse" aria-describedby="plan-tareas-caption">
+            <div className="design-table-container">
+              <table className="design-table" aria-describedby="plan-tareas-caption">
                 <caption id="plan-tareas-caption" className="sr-only">Tabla de tareas, escenarios y métricas del plan de prueba</caption>
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
+                  <tr>
+                    {isEditing && (
+                      <th scope="col" className="text-center w-28">
+                        Acción
+                      </th>
+                    )}
+                    <th scope="col" className="w-16">
                       ID
                     </th>
-                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col">
                       Escenario / tarea
                     </th>
-                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col">
                       Resultado esperado
                     </th>
-                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col">
                       Métrica principal
                     </th>
-                    <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                    <th scope="col">
                       Criterio de éxito
-                    </th>
-                    <th scope="col" className="border border-gray-300 px-3 py-2 text-center text-sm font-semibold text-gray-700 w-16">
-                      Acción
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {tasks.map((task, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      <td className="border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700">
+                    <tr key={index} className="table-row-interactive">
+                      {isEditing && (
+                        <td>
+                          <button
+                            onClick={() => deleteTask(index)}
+                            className="btn-danger w-full justify-center"
+                            title="Eliminar tarea"
+                            aria-label={`Eliminar tarea ${task.id}`}
+                          >
+                            <IconTrash size={16} className="w-4 h-4" />
+                            <span className="hidden md:inline">Eliminar</span>
+                          </button>
+                        </td>
+                      )}
+                      <td className="text-sm font-medium text-gray-700">
                         {task.id}
                       </td>
-                      <td className="border border-gray-300 px-3 py-2">
+                      <td>
                         <input
                           id={`task-${index}-scenario`}
                           type="text"
@@ -506,7 +527,7 @@ export function PlanDePrueba() {
                           aria-label={`Escenario/tarea para ${task.id}`}
                         />
                       </td>
-                      <td className="border border-gray-300 px-3 py-2">
+                      <td>
                         <input
                           id={`task-${index}-expectedResult`}
                           type="text"
@@ -520,7 +541,7 @@ export function PlanDePrueba() {
                           aria-label={`Resultado esperado para ${task.id}`}
                         />
                       </td>
-                      <td className="border border-gray-300 px-3 py-2">
+                      <td>
                         <input
                           id={`task-${index}-mainMetric`}
                           type="text"
@@ -529,12 +550,12 @@ export function PlanDePrueba() {
                           disabled={!isEditing}
                           className={`form-input w-full px-2 py-1 text-sm ${
                             !isEditing ? 'is-disabled' : ''
-                          } ${taskErrors.some(te => te.index === index && te.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
+                          } ${taskErrors.some(te => te.index === index && e.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
                           placeholder="Ej: Tiempo, éxito..."
                           aria-label={`Métrica principal para ${task.id}`}
                         />
                       </td>
-                      <td className="border border-gray-300 px-3 py-2">
+                      <td>
                         <input
                           id={`task-${index}-successCriteria`}
                           type="text"
@@ -543,33 +564,26 @@ export function PlanDePrueba() {
                           disabled={!isEditing}
                           className={`form-input w-full px-2 py-1 text-sm ${
                             !isEditing ? 'is-disabled' : ''
-                          } ${taskErrors.some(te => te.index === index && te.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
+                          } ${taskErrors.some(te => te.index === index && e.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
                           placeholder="¿Cómo medir éxito?"
                           aria-label={`Criterio de éxito para ${task.id}`}
                         />
-                      </td>
-                      <td className="border border-gray-300 px-3 py-2 text-center">
-                        {isEditing && (
-                          <button
-                            onClick={() => deleteTask(index)}
-                            className="text-red-600 hover:text-red-800 transition-colors p-1"
-                            title="Eliminar tarea"
-                            aria-label={`Eliminar tarea ${task.id}`}
-                          >
-                            <IconTrash size={16} className="w-4 h-4" />
-                          </button>
-                        )}
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
-            <div className="mt-4">
+            <div className="mt-4 flex items-center justify-between">
+              <div className="text-sm text-gray-600">
+                {tasks.length === 0 ? 'No hay tareas' : 
+                 tasks.length === 1 ? '1 tarea registrada' : 
+                 `${tasks.length} tareas registradas`}
+              </div>
               {isEditing && (
                 <button
                   onClick={addTask}
-                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  className="btn-outline-primary"
                 >
                   <IconPlus size={16} className="w-4 h-4" />
                   Añadir tarea

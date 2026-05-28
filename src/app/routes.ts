@@ -5,6 +5,7 @@ import { PlanDePrueba } from './pages/PlanDePrueba';
 import { TareasYGuion } from './pages/TareasYGuion';
 import { Observaciones } from './pages/Observaciones';
 import { Hallazgos } from './pages/Hallazgos';
+import { GuiaDiseno } from './pages/GuiaDiseno';
 
 export const router = createBrowserRouter([
   {
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
       { path: 'tareas', Component: TareasYGuion },
       { path: 'observaciones', Component: Observaciones },
       { path: 'hallazgos', Component: Hallazgos },
+      { path: 'guia', Component: GuiaDiseno },
     ],
   },
 ]);

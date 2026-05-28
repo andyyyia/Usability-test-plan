@@ -204,7 +204,7 @@ export function TareasYGuion() {
         {!isEditing && (
           <button
             onClick={handleEdit}
-            className="btn-primary"
+            className="btn-editar"
             aria-label="Editar guion de moderación"
           >
             <IconPencil size={16} className="w-4 h-4" />
@@ -214,6 +214,12 @@ export function TareasYGuion() {
       </header>
 
       <Stepper steps={getSteps()} />
+
+      {isEditing && (
+        <div className="mb-4 edit-mode-banner" role="status" aria-live="polite">
+          Modo de edición activado
+        </div>
+      )}
 
       {/* Card 1: Inicio de la sesión */}
         <Card title="Inicio de la sesión">
@@ -243,35 +249,49 @@ export function TareasYGuion() {
 
         {/* Card 2: Tareas a leer durante el test */}
         <Card title="Tareas a leer durante el test">
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse" aria-describedby="tareas-caption">
+          <div className="design-table-container">
+            <table className="design-table" aria-describedby="tareas-caption">
               <caption id="tareas-caption" className="sr-only">Tabla de tareas y preguntas del test</caption>
               <thead>
-                <tr className="bg-gray-50">
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700 w-16">
+                <tr>
+                  {isEditing && (
+                    <th scope="col" className="text-center w-28">
+                      Acciones
+                    </th>
+                  )}
+                  <th scope="col" className="w-16">
                     ID
                   </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col">
                     Texto de la tarea
                   </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col">
                     Pregunta de seguimiento
                   </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
+                  <th scope="col">
                     Éxito esperado
-                  </th>
-                  <th scope="col" className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold text-gray-700">
-                    Acciones
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {tasks.map((task, index) => (
-                  <tr key={task.id} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700">
+                  <tr key={task.id} className="table-row-interactive">
+                    {isEditing && (
+                      <td>
+                        <button
+                          onClick={() => handleDeleteTask(index)}
+                          className="btn-danger w-full justify-center"
+                          aria-label={`Eliminar tarea ${task.id}`}
+                        >
+                          <IconTrash size={16} className="w-4 h-4" />
+                          <span className="hidden md:inline">Eliminar</span>
+                        </button>
+                      </td>
+                    )}
+                    <td className="text-sm font-medium text-gray-700">
                       {task.id}
                     </td>
-                    <td className="border border-gray-300 px-3 py-2">
+                    <td>
                       <input
                         id={`task-${index}-texto`}
                         type="text"
@@ -284,7 +304,7 @@ export function TareasYGuion() {
                         aria-label={`Texto tarea ${task.id}`}
                       />
                     </td>
-                    <td className="border border-gray-300 px-3 py-2">
+                    <td>
                       <input
                         id={`task-${index}-pregunta`}
                         type="text"
@@ -297,7 +317,7 @@ export function TareasYGuion() {
                         aria-label={`Pregunta tarea ${task.id}`}
                       />
                     </td>
-                    <td className="border border-gray-300 px-3 py-2">
+                    <td>
                       <input
                         id={`task-${index}-exito`}
                         type="text"
@@ -310,35 +330,26 @@ export function TareasYGuion() {
                         aria-label={`Éxito tarea ${task.id}`}
                       />
                     </td>
-                    <td className="border border-gray-300 px-3 py-2">
-                      {isEditing && (
-                        <button
-                          onClick={() => handleDeleteTask(index)}
-                          className="btn-danger"
-                          aria-label={`Eliminar tarea ${task.id}`}
-                        >
-                          <IconTrash size={16} className="w-4 h-4" />
-                          Eliminar
-                        </button>
-                      )}
-                    </td>
                   </tr>
                 ))}
-                {isEditing && (
-                  <tr>
-                    <td colSpan={5} className="border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700">
-                      <button
-                        onClick={handleAddTask}
-                        className="btn-outline-primary"
-                      >
-                        <IconPlus size={16} className="w-4 h-4" />
-                        Agregar tarea
-                      </button>
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
+          </div>
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-gray-600">
+              {tasks.length === 0 ? 'No hay tareas' : 
+               tasks.length === 1 ? '1 tarea registrada' : 
+               `${tasks.length} tareas registradas`}
+            </div>
+            {isEditing && (
+              <button
+                onClick={handleAddTask}
+                className="btn-outline-primary"
+              >
+                <IconPlus size={16} className="w-4 h-4" />
+                Agregar tarea
+              </button>
+            )}
           </div>
         </Card>
 
