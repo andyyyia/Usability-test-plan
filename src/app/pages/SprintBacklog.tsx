@@ -35,6 +35,7 @@ import {
   type ProjectSummary,
 } from '../services/aiService';
 import { exportToMarkdown, exportToPdf } from '../services/exportService';
+import { api } from '../services/api';
 import { toast } from 'sonner';
 
 // ============================================================
@@ -648,7 +649,7 @@ function StoryCardEdit({
 export function SprintBacklog() {
   const { activeProject } = useProject();
   const { setUnsavedChanges } = useUnsavedChanges();
-  const { getSteps, projectProgress } = useProjectProgress(activeProject?.id);
+  const { getSteps, projectProgress, reloadProgress } = useProjectProgress(activeProject?.id);
 
   // Core state
   const [backlogData, setBacklogData] = useState<SprintBacklogGenerado | null>(null);
@@ -688,20 +689,42 @@ export function SprintBacklog() {
       setIsLoadingSummary(false);
     }
 
-    // Load saved backlog from localStorage
-    const saved = localStorage.getItem(getStorageKey(projectId));
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as SprintBacklogGenerado;
+    // Carga desde BD; usa localStorage solo como caché de respaldo
+    try {
+      const dbBacklog = await api.getSprintBacklog(projectId);
+      if (dbBacklog && Array.isArray(dbBacklog.historias) && dbBacklog.historias.length > 0) {
+        const parsed: SprintBacklogGenerado = {
+          historias: dbBacklog.historias,
+          nombreProyecto: dbBacklog.nombre_proyecto,
+          generadoEn: dbBacklog.generado_en,
+        };
         setBacklogData(parsed);
-      } catch {
-        localStorage.removeItem(getStorageKey(projectId));
+        localStorage.setItem(getStorageKey(projectId), JSON.stringify(parsed));
+      } else {
+        // Sin registro en BD, intenta localStorage como fallback
+        const cached = localStorage.getItem(getStorageKey(projectId));
+        if (cached) {
+          try {
+            setBacklogData(JSON.parse(cached) as SprintBacklogGenerado);
+          } catch {
+            localStorage.removeItem(getStorageKey(projectId));
+            setBacklogData(null);
+          }
+        } else {
+          setBacklogData(null);
+        }
       }
-    } else {
-      setBacklogData(null);
+    } catch {
+      // Si falla la BD, intenta localStorage
+      const cached = localStorage.getItem(getStorageKey(projectId));
+      if (cached) {
+        try { setBacklogData(JSON.parse(cached) as SprintBacklogGenerado); }
+        catch { setBacklogData(null); }
+      } else {
+        setBacklogData(null);
+      }
     }
 
-    // Reset editing state
     setIsEditing(false);
     setDraftData(null);
   }, []);
@@ -753,7 +776,10 @@ export function SprintBacklog() {
     try {
       const result = await generateSprintBacklog(activeProject.id, activeProject.nombre);
       setBacklogData(result);
+      // Persiste en BD (upsert) y caché local
+      await api.saveSprintBacklog(activeProject.id, result);
       localStorage.setItem(getStorageKey(activeProject.id), JSON.stringify(result));
+      reloadProgress();
       toast.success('Sprint Backlog generado', {
         description: `${result.historias.length} historias de usuario creadas con IA.`,
       });
@@ -779,9 +805,9 @@ export function SprintBacklog() {
     if (!draftData || !activeProject) return;
     setIsSaving(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300)); // simulate async
-      setBacklogData(draftData);
+      await api.saveSprintBacklog(activeProject.id, draftData);
       localStorage.setItem(getStorageKey(activeProject.id), JSON.stringify(draftData));
+      setBacklogData(draftData);
       setIsEditing(false);
       setDraftData(null);
       window.scrollTo({ top: 0, behavior: 'smooth' });

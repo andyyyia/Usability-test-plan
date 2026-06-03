@@ -40,6 +40,7 @@ export const api = {
     await supabase.from('tareas_guion').delete().eq('proyecto_id', id);
     await supabase.from('observaciones').delete().eq('proyecto_id', id);
     await supabase.from('hallazgos').delete().eq('proyecto_id', id);
+    await supabase.from('sprint_backlogs').delete().eq('proyecto_id', id);
     
     // Eliminación del proyecto matriz
     const { error } = await supabase.from('proyectos').delete().eq('id', id);
@@ -173,7 +174,39 @@ export const api = {
     return handleResponse({ data, error });
   },
 
-  // Sprint Backlog — carga todos los datos del proyecto en paralelo
+  // Sprint Backlog persistido en BD
+  getSprintBacklog: async (proyectoId: number) => {
+    const { data, error } = await supabase
+      .from('sprint_backlogs')
+      .select('*')
+      .eq('proyecto_id', proyectoId)
+      .single();
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return data || null;
+  },
+  saveSprintBacklog: async (
+    proyectoId: number,
+    backlog: { historias: any[]; nombreProyecto: string; generadoEn: string }
+  ) => {
+    const { data, error } = await supabase
+      .from('sprint_backlogs')
+      .upsert(
+        {
+          proyecto_id: proyectoId,
+          historias: backlog.historias,
+          nombre_proyecto: backlog.nombreProyecto,
+          generado_en: backlog.generadoEn,
+          actualizado_en: new Date().toISOString(),
+        },
+        { onConflict: 'proyecto_id' }
+      )
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
+  // Carga todos los datos del proyecto en paralelo
   getAllProjectData: async (proyectoId: number) => {
     const [plan, tareasPlan, tareasGuion, observaciones, hallazgos] = await Promise.all([
       api.getPlan(proyectoId),
