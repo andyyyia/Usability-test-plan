@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { AutoTextarea } from '../components/AutoTextarea';
 import { Card } from '../components/Card';
 import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2, IconChevronDown, IconBell, IconAlertTriangle, IconCircleCheck } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
@@ -314,45 +313,36 @@ export function Observaciones() {
       )}
 
       <Card title="Observaciones del test">
-        <div className="design-table-container">
-          <table className="design-table" aria-describedby="observaciones-caption">
+        <div className="design-table-container" style={{ overflowX: 'auto' }}>
+          <table className="design-table" aria-describedby="observaciones-caption" style={{ minWidth: 1260 }}>
             <caption id="observaciones-caption" className="sr-only">Tabla de observaciones detalladas del test</caption>
+            <colgroup>
+              <col style={{ width: 160 }} />
+              <col style={{ width: 110 }} />
+              <col style={{ width: 80 }} />
+              <col style={{ width: 110 }} />
+              <col style={{ width: 90 }} />
+              <col style={{ width: 80 }} />
+              <col style={{ width: 170 }} />
+              <col style={{ width: 170 }} />
+              <col style={{ width: 120 }} />
+              <col style={{ width: 170 }} />
+              {isEditing && <col style={{ width: 56 }} />}
+            </colgroup>
             <thead>
               <tr>
-                <th scope="col">
-                  Participante
-                </th>
-                <th scope="col">
-                  Perfil
-                </th>
-                <th scope="col">
-                  Tarea
-                </th>
-                <th scope="col">
-                  Éxito
-                </th>
-                <th scope="col">
-                  Tiempo (seg)
-                </th>
-                <th scope="col">
-                  Errores
-                </th>
-                <th scope="col">
-                  Comentarios clave
-                </th>
-                <th scope="col">
-                  Problema detectado
-                </th>
-                <th scope="col">
-                  Severidad
-                </th>
-                <th scope="col">
-                  Mejora propuesta
-                </th>
+                <th scope="col">Participante</th>
+                <th scope="col">Perfil</th>
+                <th scope="col">Tarea</th>
+                <th scope="col">Éxito</th>
+                <th scope="col">Tiempo (seg)</th>
+                <th scope="col">Errores</th>
+                <th scope="col">Comentarios clave</th>
+                <th scope="col">Problema detectado</th>
+                <th scope="col">Severidad</th>
+                <th scope="col">Mejora propuesta</th>
                 {isEditing && (
-                  <th scope="col" className="text-center" style={{ width: '48px' }}>
-                    Acción
-                  </th>
+                  <th scope="col" className="text-center">Acción</th>
                 )}
               </tr>
             </thead>
@@ -390,8 +380,9 @@ export function Observaciones() {
                         >
                           <IconChevronDown size={13} className="text-gray-500" />
                         </button>
-                        <AutoTextarea
+                        <input
                           id={`obs-${index}-participante`}
+                          type="text"
                           value={obs.participante}
                           onChange={(e) => handleChange(index, 'participante', e.target.value)}
                           disabled={!isEditing}
@@ -402,8 +393,9 @@ export function Observaciones() {
                       </div>
                     </td>
                     <td>
-                      <AutoTextarea
+                      <input
                         id={`obs-${index}-perfil`}
+                        type="text"
                         value={obs.perfil}
                         onChange={(e) => handleChange(index, 'perfil', e.target.value)}
                         disabled={!isEditing}
@@ -425,19 +417,29 @@ export function Observaciones() {
                       />
                     </td>
                     <td>
-                      <select
-                        id={`obs-${index}-exito`}
-                        value={obs.exito}
-                        onChange={(e) => handleChange(index, 'exito', e.target.value)}
-                        disabled={!isEditing}
-                        className={`form-input w-full px-2 py-1 text-sm bg-transparent ${!isEditing ? 'is-disabled' : ''} ${errors.some(e => e.index === index && e.field === 'exito') ? 'is-error' : ''} ${obs.exito ? 'is-filled' : ''}`}
-                        aria-label={`Éxito fila ${index + 1}`}
-                      >
-                        <option value="">Seleccionar...</option>
-                        <option value="Sí">Sí</option>
-                        <option value="Con ayuda">Con ayuda</option>
-                        <option value="No">No</option>
-                      </select>
+                      {isEditing ? (
+                        <select
+                          id={`obs-${index}-exito`}
+                          value={obs.exito}
+                          onChange={(e) => handleChange(index, 'exito', e.target.value)}
+                          className={`form-input w-full px-2 py-1 text-sm ${errors.some(e => e.index === index && e.field === 'exito') ? 'is-error' : ''} ${obs.exito ? 'is-filled' : ''}`}
+                          aria-label={`Éxito fila ${index + 1}`}
+                        >
+                          <option value="">Seleccionar...</option>
+                          <option value="Sí">Sí</option>
+                          <option value="Con ayuda">Con ayuda</option>
+                          <option value="No">No</option>
+                        </select>
+                      ) : (
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
+                          obs.exito === 'No' ? 'badge-error' :
+                          obs.exito === 'Con ayuda' ? 'badge-warning' :
+                          obs.exito === 'Sí' ? 'badge-success' :
+                          'text-muted'
+                        }`}>
+                          {obs.exito || '—'}
+                        </span>
+                      )}
                     </td>
                     <td>
                       <input
@@ -475,7 +477,7 @@ export function Observaciones() {
                           onChange={(e) => handleChange(index, 'comentarios', e.target.value)}
                           className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'comentarios') ? 'is-error' : ''} ${obs.comentarios ? 'is-filled' : ''}`}
                           placeholder="Comentarios..."
-                          rows={2}
+                          rows={1}
                           aria-label={`Comentarios fila ${index + 1}`}
                         />
                       ) : (
@@ -490,7 +492,7 @@ export function Observaciones() {
                           onChange={(e) => handleChange(index, 'problema', e.target.value)}
                           className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'problema') ? 'is-error' : ''} ${obs.problema ? 'is-filled' : ''}`}
                           placeholder="Problema..."
-                          rows={2}
+                          rows={1}
                           aria-label={`Problema fila ${index + 1}`}
                         />
                       ) : (
@@ -527,7 +529,7 @@ export function Observaciones() {
                           onChange={(e) => handleChange(index, 'mejora', e.target.value)}
                           className={`form-input w-full px-2 py-1 text-sm bg-transparent resize-none ${errors.some(e => e.index === index && e.field === 'mejora') ? 'is-error' : ''} ${obs.mejora ? 'is-filled' : ''}`}
                           placeholder="Mejora..."
-                          rows={2}
+                          rows={1}
                           aria-label={`Mejora fila ${index + 1}`}
                         />
                       ) : (
