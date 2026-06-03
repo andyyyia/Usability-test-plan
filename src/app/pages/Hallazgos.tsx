@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { AutoTextarea } from '../components/AutoTextarea';
 import { Card } from '../components/Card';
 import { IconAlertTriangle, IconPencil, IconX, IconCheck, IconCircleCheck, IconTrash, IconDeviceFloppy, IconBell, IconPlus, IconLoader2, IconChevronDown, IconClock, IconRefresh } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
@@ -452,8 +451,9 @@ export function Hallazgos() {
                         )}
                       </td>
                       <td>
-                        <AutoTextarea
+                        <input
                           id={`fnd-${index}-frecuencia`}
+                          type="text"
                           value={finding.frecuencia}
                           onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
                           disabled={!isEditing}

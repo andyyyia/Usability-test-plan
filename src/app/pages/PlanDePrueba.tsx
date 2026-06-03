@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { FormRow } from '../components/FormRow';
-import { AutoTextarea } from '../components/AutoTextarea';
 import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
@@ -517,8 +516,9 @@ export function PlanDePrueba() {
                         {task.id}
                       </td>
                       <td>
-                        <AutoTextarea
+                        <input
                           id={`task-${index}-scenario`}
+                          type="text"
                           value={task.scenario}
                           onChange={(e) => handleTaskChange(index, 'scenario', e.target.value)}
                           disabled={!isEditing}
@@ -530,8 +530,9 @@ export function PlanDePrueba() {
                         />
                       </td>
                       <td>
-                        <AutoTextarea
+                        <input
                           id={`task-${index}-expectedResult`}
+                          type="text"
                           value={task.expectedResult}
                           onChange={(e) => handleTaskChange(index, 'expectedResult', e.target.value)}
                           disabled={!isEditing}
@@ -543,8 +544,9 @@ export function PlanDePrueba() {
                         />
                       </td>
                       <td>
-                        <AutoTextarea
+                        <input
                           id={`task-${index}-mainMetric`}
+                          type="text"
                           value={task.mainMetric}
                           onChange={(e) => handleTaskChange(index, 'mainMetric', e.target.value)}
                           disabled={!isEditing}
@@ -556,8 +558,9 @@ export function PlanDePrueba() {
                         />
                       </td>
                       <td>
-                        <AutoTextarea
+                        <input
                           id={`task-${index}-successCriteria`}
+                          type="text"
                           value={task.successCriteria}
                           onChange={(e) => handleTaskChange(index, 'successCriteria', e.target.value)}
                           disabled={!isEditing}

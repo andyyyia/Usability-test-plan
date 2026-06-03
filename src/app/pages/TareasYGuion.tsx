@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
-import { AutoTextarea } from '../components/AutoTextarea';
 import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
@@ -295,8 +294,9 @@ export function TareasYGuion() {
                       {task.id}
                     </td>
                     <td>
-                      <AutoTextarea
+                      <input
                         id={`task-${index}-texto`}
+                        type="text"
                         value={task.texto}
                         onChange={(e) => handleTaskChange(index, 'texto', e.target.value)}
                         disabled={!isEditing}
@@ -307,8 +307,9 @@ export function TareasYGuion() {
                       />
                     </td>
                     <td>
-                      <AutoTextarea
+                      <input
                         id={`task-${index}-pregunta`}
+                        type="text"
                         value={task.pregunta}
                         onChange={(e) => handleTaskChange(index, 'pregunta', e.target.value)}
                         disabled={!isEditing}
@@ -319,8 +320,9 @@ export function TareasYGuion() {
                       />
                     </td>
                     <td>
-                      <AutoTextarea
+                      <input
                         id={`task-${index}-exito`}
+                        type="text"
                         value={task.exito}
                         onChange={(e) => handleTaskChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}
