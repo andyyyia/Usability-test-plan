@@ -710,6 +710,50 @@ body.dark .critical-item { background-color: var(--color-badge-alta-bg) !importa
   animation: pulse-gold 2s infinite;
 }
 
+/* ── Stepper: segment line fill ── */
+@keyframes stepper-segment-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes stepper-shimmer {
+  0%   { opacity: 0; left: -60px; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; left: calc(100% + 60px); }
+}
+
+.stepper-segment-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  transform-origin: left center;
+  overflow: hidden;
+  animation: stepper-segment-fill 600ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.stepper-segment-fill::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: stepper-shimmer 1s ease 680ms 1 forwards;
+  opacity: 0;
+}
+
+/* ── Stepper: check icon pop ── */
+@keyframes stepper-check-pop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.18) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg);   opacity: 1; }
+}
+
+.stepper-check-pop {
+  animation: stepper-check-pop 420ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
 /* Botón Editar con sus 3 estados (Default, Hover, Disabled) */
 .btn-editar {
   background-color: var(--color-bg-card);
