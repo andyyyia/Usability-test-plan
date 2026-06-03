@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AutoTextarea } from '../components/AutoTextarea';
 import { Card } from '../components/Card';
 import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2, IconChevronDown, IconBell, IconAlertTriangle, IconCircleCheck } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
@@ -185,6 +186,7 @@ export function Observaciones() {
       reloadProgress();
       setErrors([]);
       setIsEditing(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success('Observaciones guardadas correctamente');
     } catch (e) {
       console.error(e);
@@ -200,6 +202,7 @@ export function Observaciones() {
       return;
     }
     setIsEditing(true);
+    setTimeout(() => document.getElementById('obs-0-participante')?.focus(), 80);
   };
 
   const handleCancel = () => {
@@ -387,9 +390,8 @@ export function Observaciones() {
                         >
                           <IconChevronDown size={13} className="text-gray-500" />
                         </button>
-                        <input
+                        <AutoTextarea
                           id={`obs-${index}-participante`}
-                          type="text"
                           value={obs.participante}
                           onChange={(e) => handleChange(index, 'participante', e.target.value)}
                           disabled={!isEditing}
@@ -400,9 +402,8 @@ export function Observaciones() {
                       </div>
                     </td>
                     <td>
-                      <input
+                      <AutoTextarea
                         id={`obs-${index}-perfil`}
-                        type="text"
                         value={obs.perfil}
                         onChange={(e) => handleChange(index, 'perfil', e.target.value)}
                         disabled={!isEditing}

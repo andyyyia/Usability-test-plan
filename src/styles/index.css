@@ -519,6 +519,12 @@ body.dark table select {
   vertical-align: middle !important;
 }
 
+/* Celdas con AutoTextarea se alinean arriba para que el crecimiento sea natural */
+.design-table td:has(textarea) {
+  vertical-align: top !important;
+  padding-top: var(--space-3) !important;
+}
+
 /* Elegant, normal-sized inputs inside tables */
 .design-table .form-input,
 .design-table select,

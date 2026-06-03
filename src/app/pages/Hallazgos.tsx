@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AutoTextarea } from '../components/AutoTextarea';
 import { Card } from '../components/Card';
 import { IconAlertTriangle, IconPencil, IconX, IconCheck, IconCircleCheck, IconTrash, IconDeviceFloppy, IconBell, IconPlus, IconLoader2, IconChevronDown, IconClock, IconRefresh } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
@@ -164,6 +165,7 @@ export function Hallazgos() {
       reloadProgress();
       setErrors([]);
       setIsEditing(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success('Hallazgos guardados correctamente');
     } catch (e) {
       console.error(e);
@@ -179,6 +181,7 @@ export function Hallazgos() {
       return;
     }
     setIsEditing(true);
+    setTimeout(() => document.getElementById('fnd-0-problema')?.focus(), 80);
   };
 
   const handleCancel = () => {
@@ -449,9 +452,8 @@ export function Hallazgos() {
                         )}
                       </td>
                       <td>
-                        <input
+                        <AutoTextarea
                           id={`fnd-${index}-frecuencia`}
-                          type="text"
                           value={finding.frecuencia}
                           onChange={(e) => handleChange(index, 'frecuencia', e.target.value)}
                           disabled={!isEditing}

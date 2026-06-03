@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
+import { AutoTextarea } from '../components/AutoTextarea';
 import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
@@ -140,6 +141,7 @@ export function TareasYGuion() {
       reloadProgress();
       setErrors([]);
       setIsEditing(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success('Guion guardado correctamente');
     } catch (e) {
       console.error(e);
@@ -155,6 +157,7 @@ export function TareasYGuion() {
       return;
     }
     setIsEditing(true);
+    setTimeout(() => document.getElementById('task-0-texto')?.focus(), 80);
   };
 
   const handleCancel = () => {
@@ -292,9 +295,8 @@ export function TareasYGuion() {
                       {task.id}
                     </td>
                     <td>
-                      <input
+                      <AutoTextarea
                         id={`task-${index}-texto`}
-                        type="text"
                         value={task.texto}
                         onChange={(e) => handleTaskChange(index, 'texto', e.target.value)}
                         disabled={!isEditing}
@@ -305,9 +307,8 @@ export function TareasYGuion() {
                       />
                     </td>
                     <td>
-                      <input
+                      <AutoTextarea
                         id={`task-${index}-pregunta`}
-                        type="text"
                         value={task.pregunta}
                         onChange={(e) => handleTaskChange(index, 'pregunta', e.target.value)}
                         disabled={!isEditing}
@@ -318,9 +319,8 @@ export function TareasYGuion() {
                       />
                     </td>
                     <td>
-                      <input
+                      <AutoTextarea
                         id={`task-${index}-exito`}
-                        type="text"
                         value={task.exito}
                         onChange={(e) => handleTaskChange(index, 'exito', e.target.value)}
                         disabled={!isEditing}

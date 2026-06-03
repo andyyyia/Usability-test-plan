@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '../components/Card';
 import { FormRow } from '../components/FormRow';
+import { AutoTextarea } from '../components/AutoTextarea';
 import { IconPencil, IconX, IconTrash, IconDeviceFloppy, IconPlus, IconLoader2 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { api } from '../services/api';
@@ -268,6 +269,7 @@ export function PlanDePrueba() {
       setErrors([]);
       setTaskErrors([]);
       setIsEditing(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success('Plan guardado correctamente');
     } catch (e) {
       console.error(e);
@@ -283,6 +285,7 @@ export function PlanDePrueba() {
       return;
     }
     setIsEditing(true);
+    setTimeout(() => document.getElementById('producto')?.focus(), 80);
   };
 
   const handleCancel = () => {
@@ -514,9 +517,8 @@ export function PlanDePrueba() {
                         {task.id}
                       </td>
                       <td>
-                        <input
+                        <AutoTextarea
                           id={`task-${index}-scenario`}
-                          type="text"
                           value={task.scenario}
                           onChange={(e) => handleTaskChange(index, 'scenario', e.target.value)}
                           disabled={!isEditing}
@@ -528,9 +530,8 @@ export function PlanDePrueba() {
                         />
                       </td>
                       <td>
-                        <input
+                        <AutoTextarea
                           id={`task-${index}-expectedResult`}
-                          type="text"
                           value={task.expectedResult}
                           onChange={(e) => handleTaskChange(index, 'expectedResult', e.target.value)}
                           disabled={!isEditing}
@@ -542,29 +543,27 @@ export function PlanDePrueba() {
                         />
                       </td>
                       <td>
-                        <input
+                        <AutoTextarea
                           id={`task-${index}-mainMetric`}
-                          type="text"
                           value={task.mainMetric}
                           onChange={(e) => handleTaskChange(index, 'mainMetric', e.target.value)}
                           disabled={!isEditing}
                           className={`form-input w-full px-2 py-1 text-sm ${
                             !isEditing ? 'is-disabled' : ''
-                          } ${taskErrors.some(te => te.index === index && e.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
                           placeholder="Ej: Tiempo, éxito..."
                           aria-label={`Métrica principal para ${task.id}`}
                         />
                       </td>
                       <td>
-                        <input
+                        <AutoTextarea
                           id={`task-${index}-successCriteria`}
-                          type="text"
                           value={task.successCriteria}
                           onChange={(e) => handleTaskChange(index, 'successCriteria', e.target.value)}
                           disabled={!isEditing}
                           className={`form-input w-full px-2 py-1 text-sm ${
                             !isEditing ? 'is-disabled' : ''
-                          } ${taskErrors.some(te => te.index === index && e.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
                           placeholder="¿Cómo medir éxito?"
                           aria-label={`Criterio de éxito para ${task.id}`}
                         />
