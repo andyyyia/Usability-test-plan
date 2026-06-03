@@ -648,7 +648,7 @@ function StoryCardEdit({
 export function SprintBacklog() {
   const { activeProject } = useProject();
   const { setUnsavedChanges } = useUnsavedChanges();
-  const { getSteps } = useProjectProgress(activeProject?.id);
+  const { getSteps, projectProgress } = useProjectProgress(activeProject?.id);
 
   // Core state
   const [backlogData, setBacklogData] = useState<SprintBacklogGenerado | null>(null);
@@ -784,6 +784,7 @@ export function SprintBacklog() {
       localStorage.setItem(getStorageKey(activeProject.id), JSON.stringify(draftData));
       setIsEditing(false);
       setDraftData(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success('Borrador guardado correctamente');
     } catch (e) {
       toast.error('Error al guardar el borrador');
@@ -883,6 +884,67 @@ export function SprintBacklog() {
           No hay proyecto seleccionado
         </h2>
         <p>Selecciona o crea un proyecto en el menú lateral para continuar.</p>
+      </div>
+    );
+  }
+
+  if (!projectProgress.hasHallazgos) {
+    return (
+      <div
+        className={`transition-opacity duration-200 ${visible ? 'opacity-100' : 'opacity-0'}`}
+        style={{ paddingBottom: 'var(--space-8)' }}
+      >
+        <Breadcrumbs
+          items={[
+            { label: 'Proyectos' },
+            { label: activeProject.nombre },
+            { label: 'Sprint Backlog IA' },
+          ]}
+        />
+        <Stepper steps={getSteps()} />
+        <div
+          className="rounded-xl flex flex-col items-center text-center py-16 px-8"
+          style={{
+            background: 'var(--color-bg-card)',
+            border: '2px dashed var(--color-border-strong)',
+          }}
+        >
+          <div
+            className="flex items-center justify-center rounded-2xl w-20 h-20 mb-5"
+            style={{ background: 'var(--color-bg-secondary)' }}
+          >
+            <IconAlertTriangle size={36} style={{ color: 'var(--color-warning)' }} />
+          </div>
+          <h3
+            className="font-bold mb-3"
+            style={{ fontSize: 'var(--text-xl)', color: 'var(--color-text)' }}
+          >
+            Módulo bloqueado
+          </h3>
+          <p
+            style={{
+              fontSize: 'var(--text-base)',
+              color: 'var(--color-text-secondary)',
+              maxWidth: 480,
+              lineHeight: 1.7,
+            }}
+          >
+            Necesitas completar los módulos anteriores antes de generar el Sprint Backlog.
+            Registra al menos un <strong>hallazgo</strong> para desbloquear este módulo.
+          </p>
+          <div
+            className="flex items-center gap-2 mt-6 px-4 py-2 rounded-lg"
+            style={{
+              background: 'var(--color-warning-light)',
+              color: 'var(--color-warning)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 'var(--weight-medium)',
+            }}
+          >
+            <IconAlertTriangle size={15} />
+            Plan → Tareas → Observaciones → Hallazgos → Sprint Backlog IA
+          </div>
+        </div>
       </div>
     );
   }
