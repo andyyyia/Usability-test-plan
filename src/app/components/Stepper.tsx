@@ -87,34 +87,32 @@ export function Stepper({ steps }: StepperProps) {
                   {/* Label + status dot */}
                   <div className="mt-4 text-center">
                     <p
-                      className={`text-sm font-bold transition-colors ${
+                      className={`text-sm font-bold transition-all duration-150 group-hover:-translate-y-0.5 ${
                         isCurrent
                           ? isFinal
-                            ? 'text-[var(--color-stepper-final-text)] font-extrabold'
-                            : 'text-[var(--color-primary)]'
+                            ? 'text-[var(--color-stepper-final-text)] font-extrabold group-hover:text-[var(--color-stepper-final-text)]'
+                            : 'text-[var(--color-primary)] group-hover:text-[var(--color-primary)]'
                           : isCompleted
-                          ? 'text-[var(--color-text)]'
-                          : 'text-muted'
+                          ? 'text-[var(--color-text)] group-hover:text-[var(--color-success)]'
+                          : 'text-muted group-hover:text-[var(--color-text-secondary)]'
                       }`}
-                      style={{ transition: 'color var(--transition-fast)' }}
                     >
                       {step.label}
                     </p>
                     <div className="flex items-center justify-center gap-1.5 mt-1.5">
                       <span
-                        className={`w-2 h-2 rounded-full transition-colors ${
+                        className={`rounded-full transition-all duration-150 group-hover:scale-125 ${
                           isCompleted
-                            ? 'bg-[var(--color-success)]'
+                            ? 'w-2 h-2 bg-[var(--color-success)]'
                             : isCurrent
                             ? isFinal
-                              ? 'bg-[var(--color-stepper-final-border)] animate-pulse'
-                              : 'bg-[var(--color-primary)] animate-pulse'
-                            : 'bg-[var(--color-border)]'
+                              ? 'w-2 h-2 bg-[var(--color-stepper-final-border)] animate-pulse'
+                              : 'w-2 h-2 bg-[var(--color-primary)] animate-pulse'
+                            : 'w-2 h-2 bg-[var(--color-border)]'
                         }`}
-                        style={{ transition: 'background-color var(--transition-fast)' }}
                       />
                       <span
-                        className={`text-xs font-medium transition-colors ${
+                        className={`text-xs font-medium transition-colors duration-150 ${
                           isCompleted
                             ? 'text-[var(--color-success)]'
                             : isCurrent
@@ -123,7 +121,6 @@ export function Stepper({ steps }: StepperProps) {
                               : 'text-[var(--color-primary)]'
                             : 'text-muted'
                         }`}
-                        style={{ transition: 'color var(--transition-fast)' }}
                       >
                         {step.statusText ||
                           (isCompleted ? 'Completado' : isCurrent ? 'En progreso' : 'Pendiente')}
