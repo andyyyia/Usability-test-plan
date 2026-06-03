@@ -166,10 +166,28 @@ export const api = {
   saveHallazgos: async (proyectoId: number, hallazgos: any[]) => {
     await supabase.from('hallazgos').delete().eq('proyecto_id', proyectoId);
     if (hallazgos.length === 0) return { message: 'Operación exitosa' };
-    
+
     const { data, error } = await supabase
       .from('hallazgos')
       .insert(hallazgos.map(h => ({ ...h, proyecto_id: proyectoId })));
     return handleResponse({ data, error });
+  },
+
+  // Sprint Backlog — carga todos los datos del proyecto en paralelo
+  getAllProjectData: async (proyectoId: number) => {
+    const [plan, tareasPlan, tareasGuion, observaciones, hallazgos] = await Promise.all([
+      api.getPlan(proyectoId),
+      api.getTareasPlan(proyectoId),
+      api.getTareasGuion(proyectoId),
+      api.getObservaciones(proyectoId),
+      api.getHallazgos(proyectoId),
+    ]);
+    return {
+      plan,
+      tareasPlan: tareasPlan || [],
+      tareasGuion: tareasGuion || [],
+      observaciones: observaciones || [],
+      hallazgos: hallazgos || [],
+    };
   },
 };
