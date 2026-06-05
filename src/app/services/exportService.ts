@@ -87,6 +87,11 @@ export function exportToMarkdown(data: SprintBacklogGenerado): void {
     lines.push(`> para **${historia.para}**`);
     lines.push(``);
 
+    if (historia.razonamiento) {
+      lines.push(`> 💡 *${historia.razonamiento}*`);
+      lines.push(``);
+    }
+
     if (historia.criteriosAceptacion && historia.criteriosAceptacion.length > 0) {
       lines.push(`#### ✅ Criterios de Aceptación`);
       lines.push(``);
@@ -101,10 +106,10 @@ export function exportToMarkdown(data: SprintBacklogGenerado): void {
     if (historia.tareasTecnicas && historia.tareasTecnicas.length > 0) {
       lines.push(`#### 🛠️ Tareas Técnicas`);
       lines.push(``);
-      lines.push(`| ID | Descripción | Story Points |`);
-      lines.push(`|---|---|:---:|`);
+      lines.push(`| ID | Descripción | SP | Asignado |`);
+      lines.push(`|---|---|:---:|---|`);
       historia.tareasTecnicas.forEach((tarea) => {
-        lines.push(`| \`${tarea.id}\` | ${tarea.descripcion} | ${tarea.estimacion} |`);
+        lines.push(`| \`${tarea.id}\` | ${tarea.descripcion} | ${tarea.estimacion} | ${tarea.asignadoA || '—'} |`);
       });
       lines.push(``);
     }
@@ -113,8 +118,34 @@ export function exportToMarkdown(data: SprintBacklogGenerado): void {
     lines.push(``);
   });
 
+  // Sprint organization section
+  lines.push(`## 🗓️ Organización Preliminar del Sprint`);
+  lines.push(``);
+  lines.push(`> Las historias se sugieren distribuidas por prioridad en sprints de 2 semanas.`);
+  lines.push(``);
+
+  const sprintDefs = [
+    { label: 'Sprint 1', prioridad: 'Alta', emoji: '🔴' },
+    { label: 'Sprint 2', prioridad: 'Media', emoji: '🟡' },
+    { label: 'Sprint 3', prioridad: 'Baja', emoji: '🟢' },
+  ];
+
+  sprintDefs.forEach(({ label, prioridad, emoji }) => {
+    const stories = data.historias.filter((h) => h.prioridad === prioridad);
+    if (stories.length === 0) return;
+    const pts = stories.reduce((s, h) => s + h.puntos, 0);
+    lines.push(`### ${emoji} ${label} — Prioridad ${prioridad} (${stories.length} historia${stories.length !== 1 ? 's' : ''} · ${pts} pts)`);
+    lines.push(``);
+    stories.forEach((h) => {
+      lines.push(`- \`${h.id}\` **${h.titulo}** (${h.puntos} pts)`);
+    });
+    lines.push(``);
+  });
+
+  lines.push(`---`);
+  lines.push(``);
   lines.push(
-    `*Generado automáticamente por Usability Test Dashboard con Google Gemini AI · ${formatDate(data.generadoEn)}*`
+    `*Generado automáticamente por Usability Test Dashboard con Groq · LLaMA · ${formatDate(data.generadoEn)}*`
   );
 
   const content = lines.join('\n');
@@ -184,6 +215,10 @@ function generatePrintHtml(data: SprintBacklogGenerado): string {
         <p><span class="label">para</span> ${historia.para}</p>
       </div>
 
+      ${historia.razonamiento ? `<div style="background:#f0f9ff;border-left:3px solid #0ea5e9;padding:8px 14px;border-radius:0 6px 6px 0;margin-bottom:14px;font-size:11px;color:#0369a1;line-height:1.6">
+        💡 <em>${historia.razonamiento}</em>
+      </div>` : ''}
+
       ${
         historia.criteriosAceptacion && historia.criteriosAceptacion.filter((c) => c.trim()).length > 0
           ? `<div class="section">
@@ -208,6 +243,7 @@ function generatePrintHtml(data: SprintBacklogGenerado): string {
                 <th>ID</th>
                 <th>Descripción</th>
                 <th>Pts</th>
+                <th>Asignado</th>
               </tr>
             </thead>
             <tbody>
@@ -217,6 +253,7 @@ function generatePrintHtml(data: SprintBacklogGenerado): string {
                 <td><code>${t.id}</code></td>
                 <td>${t.descripcion}</td>
                 <td style="text-align:center;font-weight:700">${t.estimacion}</td>
+                <td style="color:#2d5a9e;font-weight:600;white-space:nowrap">${t.asignadoA || '—'}</td>
               </tr>`
                 )
                 .join('')}
@@ -382,7 +419,7 @@ function generatePrintHtml(data: SprintBacklogGenerado): string {
       </div>
       <div class="meta" style="text-align:right;flex-shrink:0">
         Usability Test Dashboard<br>
-        IA: Google Gemini
+        IA: Groq · LLaMA
       </div>
     </div>
   </div>
@@ -414,8 +451,47 @@ function generatePrintHtml(data: SprintBacklogGenerado): string {
 
   ${historiasHtml}
 
+  ${(() => {
+    const sprintRows = [
+      { label: 'Sprint 1', prioridad: 'Alta', color: '#dc2626', bg: '#fee2e2' },
+      { label: 'Sprint 2', prioridad: 'Media', color: '#d97706', bg: '#fef3c7' },
+      { label: 'Sprint 3', prioridad: 'Baja', color: '#16a34a', bg: '#dcfce7' },
+    ]
+      .map(({ label, prioridad, color, bg }) => {
+        const stories = data.historias.filter((h) => h.prioridad === prioridad);
+        if (stories.length === 0) return '';
+        const pts = stories.reduce((s, h) => s + h.puntos, 0);
+        const items = stories.map((h) => `<span style="display:inline-block;background:#f1f5f9;border-radius:6px;padding:2px 8px;font-size:11px;margin:2px"><code>${h.id}</code> ${h.titulo}</span>`).join('');
+        return `<tr>
+          <td style="font-weight:700;color:${color};background:${bg};padding:8px 12px;white-space:nowrap">${label}</td>
+          <td style="padding:8px 12px;font-weight:700">${prioridad}</td>
+          <td style="padding:8px 12px;text-align:center;font-weight:700">${stories.length}</td>
+          <td style="padding:8px 12px;text-align:center;font-weight:700">${pts}</td>
+          <td style="padding:8px 12px">${items}</td>
+        </tr>`;
+      })
+      .join('');
+    if (!sprintRows) return '';
+    return `<div style="margin-top:32px">
+      <h2 style="font-size:16px;font-weight:700;color:#1e3a5f;margin-bottom:12px">Organización Preliminar del Sprint</h2>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden">
+        <thead>
+          <tr style="background:#f8fafc">
+            <th style="padding:8px 12px;text-align:left;color:#475569">Sprint</th>
+            <th style="padding:8px 12px;text-align:left;color:#475569">Prioridad</th>
+            <th style="padding:8px 12px;text-align:center;color:#475569">Historias</th>
+            <th style="padding:8px 12px;text-align:center;color:#475569">Puntos</th>
+            <th style="padding:8px 12px;text-align:left;color:#475569">Contenido</th>
+          </tr>
+        </thead>
+        <tbody>${sprintRows}</tbody>
+      </table>
+      <p style="font-size:11px;color:#94a3b8;margin-top:8px">* Distribución sugerida por IA. Ajusta según la velocidad real del equipo.</p>
+    </div>`;
+  })()}
+
   <div class="footer">
-    Generado automáticamente por Usability Test Dashboard con IA (Google Gemini) &middot; ${formatDate(data.generadoEn)}
+    Generado automáticamente por Usability Test Dashboard con IA (Groq · LLaMA) &middot; ${formatDate(data.generadoEn)}
   </div>
 
   <script>
