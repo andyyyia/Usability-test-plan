@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   IconRocket,
   IconPencil,
@@ -809,6 +809,7 @@ export function SprintBacklog() {
     nombre: '',
     rol: 'Frontend Developer',
   });
+  const velocityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // UI state
   const [isEditing, setIsEditing] = useState(false);
@@ -843,34 +844,65 @@ export function SprintBacklog() {
       setIsLoadingSummary(false);
     }
 
-    // Carga desde BD; usa localStorage solo como caché de respaldo
+    // Carga desde BD; usa localStorage como caché de respaldo
     try {
       const dbBacklog = await api.getSprintBacklog(projectId);
-      if (dbBacklog && Array.isArray(dbBacklog.historias) && dbBacklog.historias.length > 0) {
-        const parsed: SprintBacklogGenerado = {
-          historias: dbBacklog.historias,
-          nombreProyecto: dbBacklog.nombre_proyecto,
-          generadoEn: dbBacklog.generado_en,
-        };
-        setBacklogData(parsed);
-        localStorage.setItem(getStorageKey(projectId), JSON.stringify(parsed));
-      } else {
-        // Sin registro en BD, intenta localStorage como fallback
-        const cached = localStorage.getItem(getStorageKey(projectId));
-        if (cached) {
-          try {
-            setBacklogData(JSON.parse(cached) as SprintBacklogGenerado);
-          } catch {
-            localStorage.removeItem(getStorageKey(projectId));
+      if (dbBacklog) {
+        // Equipo desde BD (fallback a localStorage)
+        if (Array.isArray(dbBacklog.equipo) && dbBacklog.equipo.length > 0) {
+          setEquipo(dbBacklog.equipo);
+          localStorage.setItem(getTeamKey(projectId), JSON.stringify(dbBacklog.equipo));
+        } else {
+          const stored = localStorage.getItem(getTeamKey(projectId));
+          setEquipo(stored ? JSON.parse(stored) : []);
+        }
+        // Velocidad desde BD (fallback a localStorage)
+        if (typeof dbBacklog.velocidad === 'number' && dbBacklog.velocidad > 0) {
+          setVelocidad(dbBacklog.velocidad);
+          localStorage.setItem(getVelocityKey(projectId), String(dbBacklog.velocidad));
+        } else {
+          const storedV = localStorage.getItem(getVelocityKey(projectId));
+          setVelocidad(storedV ? parseInt(storedV, 10) : 0);
+        }
+        // Historias
+        if (Array.isArray(dbBacklog.historias) && dbBacklog.historias.length > 0) {
+          const parsed: SprintBacklogGenerado = {
+            historias: dbBacklog.historias,
+            nombreProyecto: dbBacklog.nombre_proyecto,
+            generadoEn: dbBacklog.generado_en,
+          };
+          setBacklogData(parsed);
+          localStorage.setItem(getStorageKey(projectId), JSON.stringify(parsed));
+        } else {
+          const cached = localStorage.getItem(getStorageKey(projectId));
+          if (cached) {
+            try { setBacklogData(JSON.parse(cached) as SprintBacklogGenerado); }
+            catch { localStorage.removeItem(getStorageKey(projectId)); setBacklogData(null); }
+          } else {
             setBacklogData(null);
           }
+        }
+      } else {
+        // Sin fila en BD — todo desde localStorage
+        const storedTeam = localStorage.getItem(getTeamKey(projectId));
+        const storedVel = localStorage.getItem(getVelocityKey(projectId));
+        const cached = localStorage.getItem(getStorageKey(projectId));
+        setEquipo(storedTeam ? JSON.parse(storedTeam) : []);
+        setVelocidad(storedVel ? parseInt(storedVel, 10) : 0);
+        if (cached) {
+          try { setBacklogData(JSON.parse(cached) as SprintBacklogGenerado); }
+          catch { setBacklogData(null); }
         } else {
           setBacklogData(null);
         }
       }
     } catch {
-      // Si falla la BD, intenta localStorage
+      // BD no disponible — todo desde localStorage
+      const storedTeam = localStorage.getItem(getTeamKey(projectId));
+      const storedVel = localStorage.getItem(getVelocityKey(projectId));
       const cached = localStorage.getItem(getStorageKey(projectId));
+      setEquipo(storedTeam ? JSON.parse(storedTeam) : []);
+      setVelocidad(storedVel ? parseInt(storedVel, 10) : 0);
       if (cached) {
         try { setBacklogData(JSON.parse(cached) as SprintBacklogGenerado); }
         catch { setBacklogData(null); }
@@ -886,11 +918,6 @@ export function SprintBacklog() {
   useEffect(() => {
     if (activeProject) {
       loadProjectData(activeProject.id);
-      // Load team and velocity from localStorage
-      const storedTeam = localStorage.getItem(getTeamKey(activeProject.id));
-      const storedVelocity = localStorage.getItem(getVelocityKey(activeProject.id));
-      setEquipo(storedTeam ? JSON.parse(storedTeam) : []);
-      setVelocidad(storedVelocity ? parseInt(storedVelocity, 10) : 0);
       setShowAddMember(false);
       setNewMember({ nombre: '', rol: 'Frontend Developer' });
     } else {
@@ -943,8 +970,8 @@ export function SprintBacklog() {
         equipo.length > 0 ? equipo : undefined
       );
       setBacklogData(result);
-      // Persiste en BD (upsert) y caché local
-      await api.saveSprintBacklog(activeProject.id, result);
+      // Persiste en BD (upsert) y caché local — incluye equipo y velocidad
+      await api.saveSprintBacklog(activeProject.id, result, equipo, velocidad);
       localStorage.setItem(getStorageKey(activeProject.id), JSON.stringify(result));
       reloadProgress();
       toast.success('Sprint Backlog generado', {
@@ -972,7 +999,7 @@ export function SprintBacklog() {
     if (!draftData || !activeProject) return;
     setIsSaving(true);
     try {
-      await api.saveSprintBacklog(activeProject.id, draftData);
+      await api.saveSprintBacklog(activeProject.id, draftData, equipo, velocidad);
       localStorage.setItem(getStorageKey(activeProject.id), JSON.stringify(draftData));
       setBacklogData(draftData);
       setIsEditing(false);
@@ -1024,6 +1051,7 @@ export function SprintBacklog() {
     const updated = [...equipo, member];
     setEquipo(updated);
     localStorage.setItem(getTeamKey(activeProject.id), JSON.stringify(updated));
+    api.saveSprintConfig(activeProject.id, activeProject.nombre, updated, velocidad).catch(console.error);
     setNewMember({ nombre: '', rol: 'Frontend Developer' });
     setShowAddMember(false);
   };
@@ -1033,12 +1061,19 @@ export function SprintBacklog() {
     const updated = equipo.filter((m) => m.id !== id);
     setEquipo(updated);
     localStorage.setItem(getTeamKey(activeProject.id), JSON.stringify(updated));
+    api.saveSprintConfig(activeProject.id, activeProject.nombre, updated, velocidad).catch(console.error);
   };
 
   const handleVelocidadChange = (val: number) => {
     const v = Math.max(0, Math.min(999, val));
     setVelocidad(v);
-    if (activeProject) localStorage.setItem(getVelocityKey(activeProject.id), String(v));
+    if (!activeProject) return;
+    localStorage.setItem(getVelocityKey(activeProject.id), String(v));
+    // Debounce DB write — espera 800ms después del último cambio
+    if (velocityTimerRef.current) clearTimeout(velocityTimerRef.current);
+    velocityTimerRef.current = setTimeout(() => {
+      api.saveSprintConfig(activeProject.id, activeProject.nombre, equipo, v).catch(console.error);
+    }, 800);
   };
 
   const handleAddHistoria = () => {
