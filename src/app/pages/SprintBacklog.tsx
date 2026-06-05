@@ -18,6 +18,10 @@ import {
   IconChevronDown,
   IconChevronUp,
   IconInfoCircle,
+  IconUsers,
+  IconUserPlus,
+  IconBrain,
+  IconGauge,
 } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { useUnsavedChanges } from '../context/UnsavedChangesContext';
@@ -33,6 +37,7 @@ import {
   type HistoriaUsuario,
   type TareaTecnica,
   type ProjectSummary,
+  type MiembroEquipo,
 } from '../services/aiService';
 import { exportToMarkdown, exportToPdf } from '../services/exportService';
 import { api } from '../services/api';
@@ -44,8 +49,70 @@ import { toast } from 'sonner';
 
 const FIBONACCI = [1, 2, 3, 5, 8, 13] as const;
 
+const ROLES = [
+  'Frontend Developer',
+  'Backend Developer',
+  'Full Stack Developer',
+  'QA Engineer',
+  'UX/UI Designer',
+  'DevOps Engineer',
+  'Scrum Master',
+  'Product Owner',
+] as const;
+
+const ROLE_COLORS: Record<string, string> = {
+  'Frontend Developer': '#3b82f6',
+  'Backend Developer': '#10b981',
+  'Full Stack Developer': '#06b6d4',
+  'QA Engineer': '#f59e0b',
+  'UX/UI Designer': '#8b5cf6',
+  'DevOps Engineer': '#ef4444',
+  'Scrum Master': '#6366f1',
+  'Product Owner': '#ec4899',
+};
+
+function getRoleColor(rol: string): string {
+  return ROLE_COLORS[rol] || '#6b7280';
+}
+
+function getInitials(nombre: string): string {
+  return nombre.trim().split(/\s+/).slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('');
+}
+
 function getStorageKey(projectId: number) {
   return `sprint-backlog-${projectId}`;
+}
+
+function getTeamKey(projectId: number) {
+  return `sprint-team-${projectId}`;
+}
+
+function getVelocityKey(projectId: number) {
+  return `sprint-velocity-${projectId}`;
+}
+
+function distribuirPorVelocidad(historias: HistoriaUsuario[], velocidad: number): HistoriaUsuario[][] {
+  const order: Record<string, number> = { Alta: 0, Media: 1, Baja: 2 };
+  const sorted = [...historias].sort((a, b) => {
+    const d = order[a.prioridad] - order[b.prioridad];
+    return d !== 0 ? d : b.puntos - a.puntos;
+  });
+  const sprints: HistoriaUsuario[][] = [];
+  let current: HistoriaUsuario[] = [];
+  let pts = 0;
+  for (const h of sorted) {
+    if (h.puntos > velocidad) {
+      if (current.length) { sprints.push(current); current = []; pts = 0; }
+      sprints.push([h]);
+    } else if (pts + h.puntos <= velocidad) {
+      current.push(h); pts += h.puntos;
+    } else {
+      sprints.push(current);
+      current = [h]; pts = h.puntos;
+    }
+  }
+  if (current.length) sprints.push(current);
+  return sprints;
 }
 
 // ============================================================
@@ -170,7 +237,25 @@ function StoryCardView({
 
       {/* Card body */}
       {expanded && (
-        <div className="px-5 py-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="px-5 py-4">
+          {/* Razonamiento IA */}
+          {historia.razonamiento && (
+            <div
+              className="flex items-start gap-2 rounded-lg px-4 py-3 mb-4"
+              style={{
+                background: 'var(--color-primary-light)',
+                borderLeft: '3px solid var(--color-primary)',
+                fontSize: 'var(--text-sm)',
+                color: 'var(--color-text-secondary)',
+                lineHeight: 1.6,
+              }}
+            >
+              <IconBrain size={15} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+              <span><strong style={{ color: 'var(--color-primary)' }}>Por qué se generó:</strong> {historia.razonamiento}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* User story format */}
           <div>
             <p
@@ -253,7 +338,8 @@ function StoryCardView({
                     <tr>
                       <th scope="col" style={{ width: 80 }}>ID</th>
                       <th scope="col">Descripción</th>
-                      <th scope="col" style={{ width: 50, textAlign: 'center' }}>Pts</th>
+                      <th scope="col" style={{ width: 46, textAlign: 'center' }}>Pts</th>
+                      <th scope="col" style={{ width: 130 }}>Asignado</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -285,6 +371,27 @@ function StoryCardView({
                             {tarea.estimacion}
                           </span>
                         </td>
+                        <td>
+                          {tarea.asignadoA ? (
+                            <span
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold"
+                              style={{ color: 'var(--color-primary)' }}
+                            >
+                              <span
+                                className="inline-flex items-center justify-center rounded-full text-white font-black text-[9px]"
+                                style={{
+                                  width: 18, height: 18, flexShrink: 0,
+                                  background: 'var(--color-sidebar)',
+                                }}
+                              >
+                                {getInitials(tarea.asignadoA)}
+                              </span>
+                              {tarea.asignadoA}
+                            </span>
+                          ) : (
+                            <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>—</span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -296,6 +403,7 @@ function StoryCardView({
               </p>
             )}
           </div>
+          </div>
         </div>
       )}
     </div>
@@ -306,11 +414,13 @@ function StoryCardView({
 function StoryCardEdit({
   historia,
   index,
+  equipo,
   onChange,
   onDelete,
 }: {
   historia: HistoriaUsuario;
   index: number;
+  equipo: MiembroEquipo[];
   onChange: (updated: HistoriaUsuario) => void;
   onDelete: () => void;
 }) {
@@ -510,6 +620,21 @@ function StoryCardEdit({
               </div>
             </div>
 
+            {/* Razonamiento edit */}
+            <div className="mt-3">
+              <p className="text-xs font-bold uppercase tracking-wider mb-1.5" style={{ color: 'var(--color-text-muted)' }}>
+                💡 Razonamiento IA
+              </p>
+              <textarea
+                className="form-input w-full px-2 py-1.5 text-sm resize-none"
+                value={historia.razonamiento || ''}
+                onChange={(e) => updateField('razonamiento', e.target.value)}
+                placeholder="¿Qué hallazgo u observación origina esta historia?"
+                rows={2}
+                aria-label="Razonamiento"
+              />
+            </div>
+
             {/* Criteria edit */}
             <div className="mt-4">
               <div className="flex items-center justify-between mb-2">
@@ -627,6 +752,26 @@ function StoryCardEdit({
                     rows={2}
                     aria-label={`Descripción tarea ${ti + 1}`}
                   />
+                  {equipo.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold flex-shrink-0" style={{ color: 'var(--color-text-muted)', width: 60 }}>
+                        Asignado
+                      </span>
+                      <select
+                        className="form-input flex-1 px-2 py-1 text-xs"
+                        value={tarea.asignadoA || ''}
+                        onChange={(e) => updateTarea(ti, 'asignadoA', e.target.value || null)}
+                        aria-label={`Asignado tarea ${ti + 1}`}
+                      >
+                        <option value="">— Sin asignar —</option>
+                        {equipo.map((m) => (
+                          <option key={m.id} value={m.nombre}>
+                            {m.nombre} ({m.rol})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                 </div>
               ))}
               {historia.tareasTecnicas.length === 0 && (
@@ -655,6 +800,15 @@ export function SprintBacklog() {
   const [backlogData, setBacklogData] = useState<SprintBacklogGenerado | null>(null);
   const [draftData, setDraftData] = useState<SprintBacklogGenerado | null>(null);
   const [projectSummary, setProjectSummary] = useState<ProjectSummary | null>(null);
+
+  // Team & velocity state
+  const [equipo, setEquipo] = useState<MiembroEquipo[]>([]);
+  const [velocidad, setVelocidad] = useState<number>(0);
+  const [showAddMember, setShowAddMember] = useState(false);
+  const [newMember, setNewMember] = useState<{ nombre: string; rol: string }>({
+    nombre: '',
+    rol: 'Frontend Developer',
+  });
 
   // UI state
   const [isEditing, setIsEditing] = useState(false);
@@ -732,11 +886,20 @@ export function SprintBacklog() {
   useEffect(() => {
     if (activeProject) {
       loadProjectData(activeProject.id);
+      // Load team and velocity from localStorage
+      const storedTeam = localStorage.getItem(getTeamKey(activeProject.id));
+      const storedVelocity = localStorage.getItem(getVelocityKey(activeProject.id));
+      setEquipo(storedTeam ? JSON.parse(storedTeam) : []);
+      setVelocidad(storedVelocity ? parseInt(storedVelocity, 10) : 0);
+      setShowAddMember(false);
+      setNewMember({ nombre: '', rol: 'Frontend Developer' });
     } else {
       setProjectSummary(null);
       setBacklogData(null);
       setDraftData(null);
       setIsEditing(false);
+      setEquipo([]);
+      setVelocidad(0);
     }
   }, [activeProject, loadProjectData]);
 
@@ -774,7 +937,11 @@ export function SprintBacklog() {
 
     setIsGenerating(true);
     try {
-      const result = await generateSprintBacklog(activeProject.id, activeProject.nombre);
+      const result = await generateSprintBacklog(
+        activeProject.id,
+        activeProject.nombre,
+        equipo.length > 0 ? equipo : undefined
+      );
       setBacklogData(result);
       // Persiste en BD (upsert) y caché local
       await api.saveSprintBacklog(activeProject.id, result);
@@ -845,6 +1012,33 @@ export function SprintBacklog() {
     const newHistorias = draftData.historias.filter((_, i) => i !== confirmDeleteStory.index);
     setDraftData({ ...draftData, historias: newHistorias });
     setConfirmDeleteStory({ open: false, index: -1 });
+  };
+
+  const handleAddMember = () => {
+    if (!newMember.nombre.trim() || !activeProject) return;
+    const member: MiembroEquipo = {
+      id: `${Date.now()}`,
+      nombre: newMember.nombre.trim(),
+      rol: newMember.rol,
+    };
+    const updated = [...equipo, member];
+    setEquipo(updated);
+    localStorage.setItem(getTeamKey(activeProject.id), JSON.stringify(updated));
+    setNewMember({ nombre: '', rol: 'Frontend Developer' });
+    setShowAddMember(false);
+  };
+
+  const handleRemoveMember = (id: string) => {
+    if (!activeProject) return;
+    const updated = equipo.filter((m) => m.id !== id);
+    setEquipo(updated);
+    localStorage.setItem(getTeamKey(activeProject.id), JSON.stringify(updated));
+  };
+
+  const handleVelocidadChange = (val: number) => {
+    const v = Math.max(0, Math.min(999, val));
+    setVelocidad(v);
+    if (activeProject) localStorage.setItem(getVelocityKey(activeProject.id), String(v));
   };
 
   const handleAddHistoria = () => {
@@ -1057,7 +1251,7 @@ export function SprintBacklog() {
         projectSummary.totalHallazgos > 0
       ) && (
         <Card title="Datos disponibles para la IA">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-4">
             <div className="metric-card p-4 flex flex-col items-center text-center gap-1">
               <IconClipboardList
                 size={22}
@@ -1074,7 +1268,15 @@ export function SprintBacklog() {
               <span className="font-black text-2xl" style={{ color: 'var(--color-text)' }}>
                 {projectSummary!.totalTareas}
               </span>
-              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Tareas</span>
+              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Tareas del plan</span>
+            </div>
+
+            <div className="metric-card p-4 flex flex-col items-center text-center gap-1">
+              <IconClipboardList size={22} style={{ color: 'var(--color-primary)' }} />
+              <span className="font-black text-2xl" style={{ color: 'var(--color-text)' }}>
+                {projectSummary!.totalTareasGuion}
+              </span>
+              <span className="text-xs" style={{ color: 'var(--color-text-secondary)' }}>Tareas del guion</span>
             </div>
 
             <div className="metric-card p-4 flex flex-col items-center text-center gap-1">
@@ -1112,6 +1314,167 @@ export function SprintBacklog() {
           )}
         </Card>
       )}
+
+      {/* ── SECTION: EQUIPO DE DESARROLLO ── */}
+      <Card title="Equipo de desarrollo">
+        {/* Velocity row */}
+        <div className="flex items-center gap-3 mb-5 pb-4" style={{ borderBottom: '1px solid var(--color-border)' }}>
+          <IconGauge size={18} style={{ color: 'var(--color-text-muted)', flexShrink: 0 }} />
+          <span className="text-sm font-semibold" style={{ color: 'var(--color-text-secondary)', flexShrink: 0 }}>
+            Velocidad del equipo:
+          </span>
+          <input
+            type="number"
+            min={0}
+            max={999}
+            value={velocidad || ''}
+            onChange={(e) => handleVelocidadChange(parseInt(e.target.value) || 0)}
+            placeholder="0"
+            className="form-input px-2 py-1.5 text-sm font-bold text-center"
+            style={{ width: 72 }}
+            aria-label="Velocidad en puntos por sprint"
+          />
+          <span className="text-sm" style={{ color: 'var(--color-text-muted)' }}>pts / sprint</span>
+          {velocidad > 0 && totalPuntos > 0 && (
+            <span
+              className="text-xs rounded-full px-3 py-1 font-bold ml-1"
+              style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}
+            >
+              ~{Math.ceil(totalPuntos / velocidad)} sprint{Math.ceil(totalPuntos / velocidad) !== 1 ? 's' : ''} estimados ({totalPuntos} pts totales)
+            </span>
+          )}
+          {velocidad === 0 && (
+            <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+              Ingresa la velocidad para ver la distribución óptima de sprints
+            </span>
+          )}
+        </div>
+
+        {/* Members list */}
+        {equipo.length > 0 ? (
+          <div className="space-y-2 mb-4">
+            {equipo.map((miembro) => {
+              const color = getRoleColor(miembro.rol);
+              return (
+                <div
+                  key={miembro.id}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5"
+                  style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}
+                >
+                  <span
+                    className="flex-shrink-0 flex items-center justify-center rounded-full text-white font-black text-xs"
+                    style={{ width: 34, height: 34, background: color, fontSize: 11 }}
+                  >
+                    {getInitials(miembro.nombre)}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate" style={{ color: 'var(--color-text)' }}>
+                      {miembro.nombre}
+                    </p>
+                    <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                      {miembro.rol}
+                    </p>
+                  </div>
+                  <span
+                    className="flex-shrink-0 text-xs rounded-full px-2.5 py-0.5 font-semibold hidden sm:inline"
+                    style={{ background: `${color}20`, color }}
+                  >
+                    {miembro.rol}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveMember(miembro.id)}
+                    className="btn-danger-icon flex-shrink-0"
+                    aria-label={`Eliminar ${miembro.nombre}`}
+                    title="Eliminar miembro"
+                  >
+                    <IconX size={13} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-sm mb-4" style={{ color: 'var(--color-text-muted)' }}>
+            Sin miembros. Agrega el equipo para que la IA asigne las tareas técnicas automáticamente.
+          </p>
+        )}
+
+        {/* Add member form */}
+        {showAddMember ? (
+          <div
+            className="rounded-lg p-4 space-y-3 mb-3"
+            style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border-strong)' }}
+          >
+            <p className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--color-text-muted)' }}>
+              Nuevo miembro
+            </p>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                className="form-input flex-1 px-3 py-2 text-sm"
+                placeholder="Nombre completo..."
+                value={newMember.nombre}
+                onChange={(e) => setNewMember((p) => ({ ...p, nombre: e.target.value }))}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
+                autoFocus
+                aria-label="Nombre del nuevo miembro"
+              />
+              <select
+                className="form-input px-3 py-2 text-sm"
+                value={newMember.rol}
+                onChange={(e) => setNewMember((p) => ({ ...p, rol: e.target.value }))}
+                aria-label="Rol del nuevo miembro"
+                style={{ minWidth: 180 }}
+              >
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleAddMember}
+                disabled={!newMember.nombre.trim()}
+                className="btn-primary flex items-center gap-2 px-4 py-2 text-sm"
+                style={{ opacity: newMember.nombre.trim() ? 1 : 0.5 }}
+              >
+                <IconUserPlus size={14} />
+                Agregar
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowAddMember(false); setNewMember({ nombre: '', rol: 'Frontend Developer' }); }}
+                className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg"
+                style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowAddMember(true)}
+            className="btn-outline-primary flex items-center gap-2 px-4 py-2 text-sm mb-3"
+          >
+            <IconUserPlus size={15} />
+            Agregar miembro
+          </button>
+        )}
+
+        {equipo.length > 0 && (
+          <div
+            className="flex items-start gap-2 rounded-lg px-3 py-2.5 text-xs"
+            style={{ background: 'var(--color-primary-light)', color: 'var(--color-text-secondary)' }}
+          >
+            <IconUsers size={13} className="flex-shrink-0 mt-0.5" style={{ color: 'var(--color-primary)' }} />
+            <span>
+              Al generar (o regenerar) el Sprint Backlog, la IA asignará cada tarea técnica al miembro más adecuado según su rol.
+            </span>
+          </div>
+        )}
+      </Card>
 
       {/* ── EMPTY STATE: proyecto sin datos ── */}
       {!isLoadingSummary && !backlogData && projectSummary && (
@@ -1271,6 +1634,122 @@ export function SprintBacklog() {
             </p>
           </Card>
 
+          {/* Sprint organization */}
+          {!isEditing && (
+            <Card title="Organización Preliminar del Sprint">
+              <p className="mb-4 text-sm" style={{ color: 'var(--color-text-secondary)' }}>
+                {velocidad > 0
+                  ? `Distribución basada en velocidad del equipo (${velocidad} pts/sprint), ordenada por prioridad.`
+                  : 'Distribución sugerida por prioridad. Configura la velocidad del equipo para una distribución óptima.'}
+              </p>
+              <div className="space-y-3">
+                {velocidad > 0
+                  ? distribuirPorVelocidad(displayData.historias, velocidad).map((sprintStories, si) => {
+                      const pts = sprintStories.reduce((sum, h) => sum + h.puntos, 0);
+                      const prioridades = [...new Set(sprintStories.map((h) => h.prioridad))];
+                      const mainPriority = prioridades.includes('Alta') ? 'Alta' : prioridades.includes('Media') ? 'Media' : 'Baja';
+                      const colorMap: Record<string, { color: string; bg: string }> = {
+                        Alta: { color: 'var(--color-error)', bg: 'var(--color-error-light)' },
+                        Media: { color: 'var(--color-warning)', bg: 'var(--color-warning-light)' },
+                        Baja: { color: 'var(--color-success)', bg: 'var(--color-success-light)' },
+                      };
+                      const { color: colorVar, bg: bgVar } = colorMap[mainPriority];
+                      return (
+                        <div
+                          key={si}
+                          className="rounded-xl p-4 flex items-start gap-4"
+                          style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}
+                        >
+                          <div
+                            className="flex-shrink-0 rounded-lg flex flex-col items-center justify-center text-center px-3 py-2 min-w-[72px]"
+                            style={{ background: bgVar, border: `1.5px solid ${colorVar}` }}
+                          >
+                            <span className="font-black text-xs" style={{ color: colorVar }}>Sprint {si + 1}</span>
+                            <span className="font-black text-lg leading-tight" style={{ color: colorVar }}>{pts}</span>
+                            <span className="text-[9px] font-bold uppercase" style={{ color: colorVar }}>pts</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                              <span className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>
+                                {sprintStories.length} historia{sprintStories.length !== 1 ? 's' : ''}
+                              </span>
+                              <span className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+                                {velocidad - pts >= 0 ? `(${velocidad - pts} pts libres)` : ''}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {sprintStories.map((h, i) => {
+                                const pc = colorMap[h.prioridad];
+                                return (
+                                  <span
+                                    key={i}
+                                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs"
+                                    style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+                                  >
+                                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: pc.color }} />
+                                    <code className="font-mono font-bold text-[10px]" style={{ color: 'var(--color-primary)' }}>{h.id}</code>
+                                    <span className="truncate max-w-[160px]">{h.titulo}</span>
+                                    <span className="font-bold text-[10px] rounded-full px-1.5" style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>{h.puntos}p</span>
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  : ([
+                      { label: 'Sprint 1', prioridad: 'Alta', colorVar: 'var(--color-error)', bgVar: 'var(--color-error-light)', emoji: '🔴' },
+                      { label: 'Sprint 2', prioridad: 'Media', colorVar: 'var(--color-warning)', bgVar: 'var(--color-warning-light)', emoji: '🟡' },
+                      { label: 'Sprint 3', prioridad: 'Baja', colorVar: 'var(--color-success)', bgVar: 'var(--color-success-light)', emoji: '🟢' },
+                    ] as const).map(({ label, prioridad, colorVar, bgVar, emoji }) => {
+                      const stories = displayData.historias.filter((h) => h.prioridad === prioridad);
+                      if (stories.length === 0) return null;
+                      const pts = stories.reduce((sum, h) => sum + h.puntos, 0);
+                      return (
+                        <div
+                          key={prioridad}
+                          className="rounded-xl p-4 flex items-start gap-4"
+                          style={{ background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}
+                        >
+                          <div
+                            className="flex-shrink-0 rounded-lg flex flex-col items-center justify-center text-center px-3 py-2 min-w-[72px]"
+                            style={{ background: bgVar, border: `1.5px solid ${colorVar}` }}
+                          >
+                            <span className="text-lg leading-none">{emoji}</span>
+                            <span className="font-black text-xs mt-1" style={{ color: colorVar }}>{label}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3 mb-2 flex-wrap">
+                              <span className="font-bold text-sm" style={{ color: 'var(--color-text)' }}>Prioridad {prioridad}</span>
+                              <span className="text-xs rounded-full px-2 py-0.5 font-bold" style={{ background: bgVar, color: colorVar }}>
+                                {stories.length} historia{stories.length !== 1 ? 's' : ''}
+                              </span>
+                              <span className="text-xs rounded-full px-2 py-0.5 font-bold" style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>
+                                {pts} pts
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {stories.map((h, i) => (
+                                <span
+                                  key={i}
+                                  className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs"
+                                  style={{ background: 'var(--color-bg-card)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+                                >
+                                  <code className="font-mono font-bold text-[10px]" style={{ color: 'var(--color-primary)' }}>{h.id}</code>
+                                  <span className="truncate max-w-[180px]">{h.titulo}</span>
+                                  <span className="font-bold text-[10px] rounded-full px-1.5" style={{ background: 'var(--color-primary-light)', color: 'var(--color-primary)' }}>{h.puntos}p</span>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+              </div>
+            </Card>
+          )}
+
           {/* Stories */}
           <Card title={`Historias de Usuario (${displayData.historias.length})`}>
             {displayData.historias.length === 0 ? (
@@ -1285,6 +1764,7 @@ export function SprintBacklog() {
                     key={`${historia.id}-${index}`}
                     historia={historia}
                     index={index}
+                    equipo={equipo}
                     onChange={(updated) => handleUpdateHistoria(index, updated)}
                     onDelete={() => handleDeleteHistoria(index)}
                   />
