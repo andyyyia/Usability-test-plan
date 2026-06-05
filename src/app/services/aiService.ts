@@ -4,10 +4,17 @@ import { api } from './api';
 // TYPES
 // ============================================================
 
+export interface MiembroEquipo {
+  id: string;
+  nombre: string;
+  rol: string;
+}
+
 export interface TareaTecnica {
   id: string;
   descripcion: string;
   estimacion: number;
+  asignadoA?: string | null;
 }
 
 export interface HistoriaUsuario {
@@ -20,6 +27,7 @@ export interface HistoriaUsuario {
   puntos: number;
   criteriosAceptacion: string[];
   tareasTecnicas: TareaTecnica[];
+  razonamiento?: string;
 }
 
 export interface SprintBacklogGenerado {
@@ -31,6 +39,7 @@ export interface SprintBacklogGenerado {
 export interface ProjectSummary {
   tienePlan: boolean;
   totalTareas: number;
+  totalTareasGuion: number;
   totalObservaciones: number;
   totalHallazgos: number;
   hallazgosAlta: number;
@@ -46,8 +55,10 @@ function buildPrompt(data: {
   nombreProyecto: string;
   plan: any;
   tareasPlan: any[];
+  tareasGuion: any[];
   observaciones: any[];
   hallazgos: any[];
+  equipo?: MiembroEquipo[];
 }): string {
   const plan = data.plan;
 
@@ -56,12 +67,16 @@ function buildPrompt(data: {
     : 'Sin plan registrado.';
 
   const tareasTxt = data.tareasPlan.length
-    ? data.tareasPlan.map(t => `[${t.identificador}] ${t.texto || ''}`).join(' | ')
-    : 'Sin tareas.';
+    ? data.tareasPlan.map(t => `[${t.identificador}] Escenario: ${t.escenario || t.texto || ''} | Métrica: ${t.metrica_principal || '—'}`).join(' | ')
+    : 'Sin tareas del plan.';
+
+  const guionTxt = data.tareasGuion.length
+    ? data.tareasGuion.map(t => `[${t.identificador}] ${t.texto || ''} | Pregunta de seguimiento: ${t.pregunta || '—'} | Éxito esperado: ${t.exito_esperado || '—'}`).join(' | ')
+    : 'Sin guion de tareas.';
 
   const obsTxt = data.observaciones.length
     ? data.observaciones.map(o =>
-        `${o.participante || 'P'}: "${o.problema || 'sin problema'}" (severidad: ${o.severidad || '—'})`
+        `${o.participante || 'P'}: tarea ${o.tarea_id || o.tarea || '—'} — "${o.problema || 'sin problema'}" (severidad: ${o.severidad || '—'}, éxito: ${o.exito || '—'})`
       ).join(' | ')
     : 'Sin observaciones.';
 
@@ -71,13 +86,19 @@ function buildPrompt(data: {
       ).join('\n')
     : 'Sin hallazgos registrados.';
 
+  const equipoTxt = data.equipo && data.equipo.length > 0
+    ? data.equipo.map(m => `- ${m.nombre} (${m.rol})`).join('\n')
+    : null;
+
   return `Eres un Scrum Master experto en UX. Analiza los siguientes datos de una prueba de usabilidad del proyecto "${data.nombreProyecto}" y genera un Sprint Backlog en español.
 
 PLAN DE PRUEBA: ${planTxt}
-TAREAS EVALUADAS: ${tareasTxt}
-OBSERVACIONES: ${obsTxt}
+TAREAS DEL PLAN: ${tareasTxt}
+GUION DE TAREAS (escenarios aplicados con el usuario): ${guionTxt}
+OBSERVACIONES DE PARTICIPANTES: ${obsTxt}
 HALLAZGOS:
 ${hallTxt}
+${equipoTxt ? `\nEQUIPO DE DESARROLLO (asigna cada tarea técnica al miembro más adecuado según su rol):\n${equipoTxt}` : ''}
 
 Genera entre 3 y 5 historias de usuario que corrijan los problemas de usabilidad identificados.
 
@@ -93,13 +114,14 @@ IMPORTANTE: Responde SOLO con JSON válido, sin texto adicional, sin explicacion
       "para": "beneficio que obtendrá",
       "prioridad": "Alta",
       "puntos": 5,
+      "razonamiento": "Explica en 1-2 oraciones qué hallazgo u observación específica origina esta historia.",
       "criteriosAceptacion": [
         "Criterio verificable 1",
         "Criterio verificable 2"
       ],
       "tareasTecnicas": [
-        { "id": "TT-001-1", "descripcion": "Descripción técnica", "estimacion": 3 },
-        { "id": "TT-001-2", "descripcion": "Descripción técnica", "estimacion": 2 }
+        { "id": "TT-001-1", "descripcion": "Descripción técnica", "estimacion": 3, "asignadoA": "Nombre del miembro o null" },
+        { "id": "TT-001-2", "descripcion": "Descripción técnica", "estimacion": 2, "asignadoA": "Nombre del miembro o null" }
       ]
     }
   ]
@@ -110,6 +132,8 @@ Reglas:
 - puntos solo puede ser: 1, 2, 3, 5, 8 o 13
 - Cada historia debe tener entre 2 y 4 criteriosAceptacion
 - Cada historia debe tener entre 2 y 3 tareasTecnicas
+- razonamiento: obligatorio, máximo 2 oraciones, menciona el hallazgo u observación concreta que origina la historia
+- asignadoA: si hay equipo definido, asigna al miembro más adecuado según la naturaleza de la tarea y el rol; si no hay equipo, usa null
 - Todo el contenido en español`;
 }
 
@@ -147,7 +171,8 @@ const GROQ_MODEL = 'llama-3.3-70b-versatile'; // Mejor modelo gratuito de Groq
 
 export async function generateSprintBacklog(
   proyectoId: number,
-  nombreProyecto: string
+  nombreProyecto: string,
+  equipo?: MiembroEquipo[]
 ): Promise<SprintBacklogGenerado> {
   const apiKey = (import.meta.env.VITE_GROQ_API_KEY as string | undefined)?.trim();
 
@@ -156,9 +181,10 @@ export async function generateSprintBacklog(
   }
 
   // Cargar todos los datos del proyecto en paralelo
-  const [plan, tareasPlan, observaciones, hallazgos] = await Promise.all([
+  const [plan, tareasPlan, tareasGuion, observaciones, hallazgos] = await Promise.all([
     api.getPlan(proyectoId).catch(() => null),
     api.getTareasPlan(proyectoId).catch(() => []),
+    api.getTareasGuion(proyectoId).catch(() => []),
     api.getObservaciones(proyectoId).catch(() => []),
     api.getHallazgos(proyectoId).catch(() => []),
   ]);
@@ -167,8 +193,10 @@ export async function generateSprintBacklog(
     nombreProyecto,
     plan,
     tareasPlan: tareasPlan ?? [],
+    tareasGuion: tareasGuion ?? [],
     observaciones: observaciones ?? [],
     hallazgos: hallazgos ?? [],
+    equipo,
   });
 
   // Llamada a Groq
@@ -238,9 +266,10 @@ export async function generateSprintBacklog(
 // ============================================================
 
 export async function loadProjectSummary(proyectoId: number): Promise<ProjectSummary> {
-  const [plan, tareasPlan, observaciones, hallazgos] = await Promise.all([
+  const [plan, tareasPlan, tareasGuion, observaciones, hallazgos] = await Promise.all([
     api.getPlan(proyectoId).catch(() => null),
     api.getTareasPlan(proyectoId).catch(() => []),
+    api.getTareasGuion(proyectoId).catch(() => []),
     api.getObservaciones(proyectoId).catch(() => []),
     api.getHallazgos(proyectoId).catch(() => []),
   ]);
@@ -250,6 +279,7 @@ export async function loadProjectSummary(proyectoId: number): Promise<ProjectSum
   return {
     tienePlan: !!plan,
     totalTareas: (tareasPlan ?? []).length,
+    totalTareasGuion: (tareasGuion ?? []).length,
     totalObservaciones: (observaciones ?? []).length,
     totalHallazgos: h.length,
     hallazgosAlta: h.filter((x: any) => x.severidad === 'Alta').length,
