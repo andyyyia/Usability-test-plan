@@ -268,6 +268,7 @@ export function PlanDePrueba() {
       setErrors([]);
       setTaskErrors([]);
       setIsEditing(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success('Plan guardado correctamente');
     } catch (e) {
       console.error(e);
@@ -283,6 +284,7 @@ export function PlanDePrueba() {
       return;
     }
     setIsEditing(true);
+    setTimeout(() => document.getElementById('producto')?.focus(), 80);
   };
 
   const handleCancel = () => {
@@ -550,7 +552,7 @@ export function PlanDePrueba() {
                           disabled={!isEditing}
                           className={`form-input w-full px-2 py-1 text-sm ${
                             !isEditing ? 'is-disabled' : ''
-                          } ${taskErrors.some(te => te.index === index && e.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'mainMetric') ? 'is-error' : ''} ${task.mainMetric ? 'is-filled' : ''}`}
                           placeholder="Ej: Tiempo, éxito..."
                           aria-label={`Métrica principal para ${task.id}`}
                         />
@@ -564,7 +566,7 @@ export function PlanDePrueba() {
                           disabled={!isEditing}
                           className={`form-input w-full px-2 py-1 text-sm ${
                             !isEditing ? 'is-disabled' : ''
-                          } ${taskErrors.some(te => te.index === index && e.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
+                          } ${taskErrors.some(te => te.index === index && te.field === 'successCriteria') ? 'is-error' : ''} ${task.successCriteria ? 'is-filled' : ''}`}
                           placeholder="¿Cómo medir éxito?"
                           aria-label={`Criterio de éxito para ${task.id}`}
                         />

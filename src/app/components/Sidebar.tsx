@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router';
-import { IconLayoutDashboard, IconClipboardList, IconListCheck, IconEye, IconChartBar, IconFolderPlus, IconFolder, IconPencil, IconTrash, IconX, IconDotsVertical, IconPalette } from '@tabler/icons-react';
+import { IconLayoutDashboard, IconClipboardList, IconListCheck, IconEye, IconChartBar, IconFolderPlus, IconFolder, IconPencil, IconTrash, IconX, IconDotsVertical, IconPalette, IconRocket } from '@tabler/icons-react';
 import { useProject } from '../context/ProjectContext';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
@@ -108,6 +108,7 @@ export function Sidebar({ isMobileOpen, onCloseMobile }: { isMobileOpen: boolean
     { to: '/tareas', label: 'Tareas y guion', icon: IconListCheck },
     { to: '/observaciones', label: 'Observaciones', icon: IconEye },
     { to: '/hallazgos', label: 'Hallazgos', icon: IconChartBar },
+    { to: '/sprint-backlog', label: 'Sprint Backlog IA', icon: IconRocket },
   ];
 
   return (

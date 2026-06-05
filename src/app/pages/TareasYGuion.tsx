@@ -140,6 +140,7 @@ export function TareasYGuion() {
       reloadProgress();
       setErrors([]);
       setIsEditing(false);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success('Guion guardado correctamente');
     } catch (e) {
       console.error(e);
@@ -155,6 +156,7 @@ export function TareasYGuion() {
       return;
     }
     setIsEditing(true);
+    setTimeout(() => document.getElementById('task-0-texto')?.focus(), 80);
   };
 
   const handleCancel = () => {

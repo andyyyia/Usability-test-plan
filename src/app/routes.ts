@@ -6,6 +6,7 @@ import { TareasYGuion } from './pages/TareasYGuion';
 import { Observaciones } from './pages/Observaciones';
 import { Hallazgos } from './pages/Hallazgos';
 import { GuiaDiseno } from './pages/GuiaDiseno';
+import { SprintBacklog } from './pages/SprintBacklog';
 
 export const router = createBrowserRouter([
   {
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
       { path: 'tareas', Component: TareasYGuion },
       { path: 'observaciones', Component: Observaciones },
       { path: 'hallazgos', Component: Hallazgos },
+      { path: 'sprint-backlog', Component: SprintBacklog },
       { path: 'guia', Component: GuiaDiseno },
     ],
   },

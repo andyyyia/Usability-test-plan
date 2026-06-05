@@ -40,6 +40,7 @@ export const api = {
     await supabase.from('tareas_guion').delete().eq('proyecto_id', id);
     await supabase.from('observaciones').delete().eq('proyecto_id', id);
     await supabase.from('hallazgos').delete().eq('proyecto_id', id);
+    await supabase.from('sprint_backlogs').delete().eq('proyecto_id', id);
     
     // Eliminación del proyecto matriz
     const { error } = await supabase.from('proyectos').delete().eq('id', id);
@@ -166,10 +167,83 @@ export const api = {
   saveHallazgos: async (proyectoId: number, hallazgos: any[]) => {
     await supabase.from('hallazgos').delete().eq('proyecto_id', proyectoId);
     if (hallazgos.length === 0) return { message: 'Operación exitosa' };
-    
+
     const { data, error } = await supabase
       .from('hallazgos')
       .insert(hallazgos.map(h => ({ ...h, proyecto_id: proyectoId })));
     return handleResponse({ data, error });
+  },
+
+  // Sprint Backlog persistido en BD
+  getSprintBacklog: async (proyectoId: number) => {
+    const { data, error } = await supabase
+      .from('sprint_backlogs')
+      .select('*')
+      .eq('proyecto_id', proyectoId)
+      .single();
+    if (error && error.code !== 'PGRST116') throw new Error(error.message);
+    return data || null;
+  },
+  saveSprintBacklog: async (
+    proyectoId: number,
+    backlog: { historias: any[]; nombreProyecto: string; generadoEn: string },
+    equipo?: any[],
+    velocidad?: number
+  ) => {
+    const payload: Record<string, any> = {
+      proyecto_id: proyectoId,
+      historias: backlog.historias,
+      nombre_proyecto: backlog.nombreProyecto,
+      generado_en: backlog.generadoEn,
+      actualizado_en: new Date().toISOString(),
+    };
+    if (equipo !== undefined) payload.equipo = equipo;
+    if (velocidad !== undefined) payload.velocidad = velocidad;
+
+    const { data, error } = await supabase
+      .from('sprint_backlogs')
+      .upsert(payload, { onConflict: 'proyecto_id' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return data;
+  },
+  // Guarda solo equipo y velocidad (crea la fila si no existe)
+  saveSprintConfig: async (
+    proyectoId: number,
+    nombreProyecto: string,
+    equipo: any[],
+    velocidad: number
+  ) => {
+    const { error } = await supabase
+      .from('sprint_backlogs')
+      .upsert(
+        {
+          proyecto_id: proyectoId,
+          nombre_proyecto: nombreProyecto,
+          equipo,
+          velocidad,
+        },
+        { onConflict: 'proyecto_id' }
+      );
+    if (error) throw new Error(error.message);
+  },
+
+  // Carga todos los datos del proyecto en paralelo
+  getAllProjectData: async (proyectoId: number) => {
+    const [plan, tareasPlan, tareasGuion, observaciones, hallazgos] = await Promise.all([
+      api.getPlan(proyectoId),
+      api.getTareasPlan(proyectoId),
+      api.getTareasGuion(proyectoId),
+      api.getObservaciones(proyectoId),
+      api.getHallazgos(proyectoId),
+    ]);
+    return {
+      plan,
+      tareasPlan: tareasPlan || [],
+      tareasGuion: tareasGuion || [],
+      observaciones: observaciones || [],
+      hallazgos: hallazgos || [],
+    };
   },
 };

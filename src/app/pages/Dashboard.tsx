@@ -49,13 +49,13 @@ function MetricCard({ title, value, icon: Icon, color }: { title: string; value:
   const isNumeric = typeof value === 'number';
 
   return (
-    <div className="metric-card p-6 flex items-center gap-4">
-      <div className="p-3 rounded-lg" style={{ backgroundColor: color }}>
-        <Icon size={20} className="text-white" />
+    <div className="metric-card p-8 flex items-center gap-5">
+      <div className="p-4 rounded-xl flex-shrink-0" style={{ backgroundColor: color }}>
+        <Icon size={32} className="text-white" />
       </div>
       <div>
-        <p className="text-sm text-secondary">{title}</p>
-        <p className="text-2xl font-bold text-body" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-2xl)', fontWeight: 'var(--weight-black)' }}>
+        <p className="text-base text-secondary">{title}</p>
+        <p className="font-bold text-body" style={{ fontFamily: 'var(--font-mono)', fontSize: 'var(--text-3xl)', fontWeight: 'var(--weight-black)', lineHeight: 1.1 }}>
           {isNumeric ? <CountUp end={value as number} /> : value}
         </p>
       </div>
